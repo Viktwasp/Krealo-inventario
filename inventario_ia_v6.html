@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<!-- Inventario de Actividades | Krealo People
+     Versión: 6.0 | Fecha: 2026-06-02
+     Cambios vs v5: QA completo — vocabulario "flujos" global (Investment + Support),
+                    orden correcto modal→prompt→inventario, brand AI (no IA),
+                    tutorial reescrito copy aprobado, transición dark→light.
+     Autor: Activador AI 2026 -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventario AI · Krealo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Brand Krealo AI: Figtree (UI principal) + DM Mono (solo texto de prompts) -->
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ── TOKENS ───────────────────────────────────────────────────── */
+:root {
+  /* Krealo AI brand system (brand_system_krealo_ai.md) */
+  --kai-navy:     #0B4C6F;   /* Brand/900 — hero/cover, fill de progreso */
+  --kai-blue:     #065C86;   /* Brand/800 — botones primarios, headings */
+  --kai-link:     #0188C8;   /* Brand/600 — labels, eyebrows, interactivos */
+  --kai-lime:     #BEF264;   /* Lime — acento AI, barra de identidad */
+  --kai-esmerald: #40E888;   /* Esmerald/400 — tags de estado, datos positivos */
+
+  /* Superficies */
+  --paper:        #F5F4F1;   /* fondo app (dashboard-consistent) */
+  --paper-warm:   #ECEAE5;
+  --surface:      #FFFFFF;
+  --line:         #D4D0C8;
+  --ink:          #1A1A1A;
+  --ink-soft:     #3D3D3D;
+  --ink-faint:    #7A7A7A;
+
+  /* Semánticos → apuntan a brand tokens */
+  --accent:       var(--kai-blue);
+  --accent-hover: var(--kai-navy);
+  --accent-pale:  #E6F1FB;
+  --accent-border:#B5D4F4;
+  --accent-text:  #FFFFFF;
+  --consequence:        #F0F7F4;
+  --consequence-border: #B8DDD0;
+  --consequence-text:   #1A6650;
+
+  /* HR Hierarchy */
+  --run-color:    #D86204; --run-bg:    #FFF9EB;
+  --drive-color:  #18CF67; --drive-bg:  #EFFEF5;
+  --grow-color:   #754FD8; --grow-bg:   #F5F4FE;
+  --scale-color:  #065C86; --scale-bg:  #E0F3FE;
+
+  --radius-sm: 4px; --radius: 8px; --radius-lg: 12px;
+}
+
+/* ── RESET ────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* Figtree — fuente única del sistema Krealo AI (brand_system_krealo_ai.md §2) */
+body{font-family:'Figtree',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+/* ── BARRA DE IDENTIDAD + PROGRESO ──────────────────────────────
+   Lime (#BEF264) = señal permanente de sub-marca Krealo AI.
+   Fill Navy (#0B4C6F) avanza de izquierda a derecha con el progreso.
+   Juntos cumplen ambas funciones: identidad siempre visible + indicador. */
+.prog-bar{position:fixed;top:0;left:0;right:0;height:4px;background:var(--kai-lime);z-index:300;}
+.prog-fill{height:100%;background:var(--kai-navy);transition:width .5s cubic-bezier(.4,0,.2,1);width:0%;}
+
+/* ── SCREENS + TRANSICIÓN ─────────────────────────────────────
+   Fade-in suave en cada pantalla — resuelve el salto dark→light
+   entre bienvenida (Brand/900) y pantallas interiores (paper).
+   display:none→flex no anima directamente, pero el browser
+   aplica el keyframe desde from:opacity:0 en el siguiente paint. */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;animation:screenIn .3s ease forwards;}
+@keyframes screenIn{from{opacity:0}to{opacity:1}}
+
+/* ── TOPBAR ───────────────────────────────────────────────────── */
+/* border-top Lime = franja de identidad Krealo AI en pantallas interiores */
+.topbar{position:sticky;top:4px;z-index:100;background:var(--paper);border-bottom:1px solid var(--line);border-top:none;padding:12px 40px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-brand{font-family:'Figtree',sans-serif;font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--kai-blue);}
+.topbar-brand .ai-word{color:var(--kai-lime);background:var(--kai-navy);padding:1px 5px;border-radius:3px;margin-left:2px;}
+.topbar-step{font-family:'Figtree',sans-serif;font-size:11px;font-weight:500;color:var(--ink-faint);letter-spacing:.02em;}
+
+/* ── LAYOUT ───────────────────────────────────────────────────── */
+.center-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 24px;}
+.content{max-width:560px;width:100%;}
+.content-wide{max-width:820px;width:100%;}
+
+/* ── TIPO ─────────────────────────────────────────────────────── */
+/* Brand/600 para labels/eyebrows — brand_system_krealo_ai.md §2 */
+.eyebrow{font-family:'Figtree',sans-serif;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--kai-link);margin-bottom:14px;display:block;}
+h1{font-size:38px;font-weight:300;line-height:1.1;letter-spacing:-.03em;margin-bottom:20px;}
+h1 strong{font-weight:600;}
+h2{font-size:26px;font-weight:400;line-height:1.2;letter-spacing:-.02em;margin-bottom:14px;}
+.lead{font-size:15px;color:var(--ink-soft);line-height:1.75;margin-bottom:28px;}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);padding:7px 16px;border-radius:20px;font-family:'Figtree',sans-serif;font-size:11px;color:var(--ink-faint);margin-bottom:32px;}
+
+/* ── BUTTONS ──────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;border-radius:var(--radius-sm);font-family:'Figtree',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all .16s;letter-spacing:.01em;}
+.btn-primary{background:var(--accent);color:var(--accent-text);}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none!important;}
+.btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
+.btn-ghost:hover{border-color:var(--ink-soft);}
+.btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent);}
+.btn-outline:hover{background:var(--accent-pale);}
+
+/* ── BLOQUE DE PREPARACIÓN — behavioral design (Welcome) ──────── */
+.prep-block{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:18px 22px;margin-bottom:20px;}
+.prep-title{font-size:11px;font-weight:700;color:var(--kai-lime);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;display:block;}
+.prep-items{display:flex;flex-direction:column;gap:8px;}
+.prep-item{font-size:13.5px;color:rgba(255,255,255,.78);display:flex;align-items:flex-start;gap:10px;line-height:1.45;}
+.prep-check{color:var(--kai-lime);flex-shrink:0;font-weight:700;margin-top:1px;}
+
+/* Componente ámbar — no-regreso + recompensa. Independiente del checklist.
+   Color referencial — validar con brand guidelines al implementar en producción. */
+.warning-amber{display:flex;align-items:flex-start;gap:10px;padding:13px 16px;background:rgba(239,159,39,.09);border-radius:var(--radius);border-left:2.5px solid rgba(239,159,39,.6);margin-bottom:24px;font-size:13px;color:#c8a85a;line-height:1.6;}
+.warning-amber-icon{flex-shrink:0;font-size:15px;margin-top:1px;}
+.warning-amber-accent{color:#a8d080;font-weight:600;}
+
+/* ── WELCOME — hero en Brand/900 (portada Krealo AI, brand §3②) ─ */
+#s-welcome{background:var(--kai-navy);}
+#s-welcome .center-wrap{background:radial-gradient(ellipse 55% 45% at 80% 30%,rgba(1,136,200,.22) 0%,transparent 70%),radial-gradient(ellipse 40% 40% at 10% 80%,rgba(190,242,100,.06) 0%,transparent 60%);}
+#s-welcome h1{color:#FFFFFF;}
+#s-welcome h1 strong{color:var(--kai-lime);}
+#s-welcome .lead{color:rgba(255,255,255,.7);}
+#s-welcome .badge{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.55);}
+#s-welcome .eyebrow{color:var(--kai-lime);}
+#s-welcome .area-select-label{color:rgba(255,255,255,.6);}
+#s-welcome .area-select{background-color:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#FFFFFF;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23BEF264' d='M6 8L1 3h10z'/%3E%3C/svg%3E");}
+#s-welcome .area-select option{background:#0B4C6F;color:#FFFFFF;}
+#s-welcome .area-select:focus{border-color:var(--kai-lime);}
+#s-welcome .btn-primary{background:var(--kai-lime);color:var(--kai-navy);font-weight:700;}
+#s-welcome .btn-primary:hover{background:#d4f76a;}
+
+/* ── AREA SELECT ──────────────────────────────────────────────── */
+.area-select-wrap{margin-bottom:28px;}
+.area-select-label{font-size:12px;color:var(--ink-faint);margin-bottom:6px;display:block;}
+.area-select{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);font-family:'Figtree',sans-serif;font-size:14px;color:var(--ink);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23586F82' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;transition:border-color .15s;}
+.area-select:focus{border-color:var(--accent);}
+
+/* ── OVERLAYS / MODALS ────────────────────────────────────────── */
+.tutorial-overlay{position:fixed;inset:0;background:rgba(0,15,18,.55);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;}
+.tutorial-overlay.visible{opacity:1;pointer-events:all;}
+.tutorial-card{background:var(--surface);border-radius:var(--radius-lg);padding:36px 40px;max-width:520px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.18);}
+.tutorial-steps{display:flex;flex-direction:column;gap:18px;margin:20px 0 24px;}
+.tutorial-step{display:flex;gap:14px;align-items:flex-start;}
+.tutorial-step-num{font-family:'Figtree',sans-serif;font-size:11px;color:var(--accent-text);background:var(--accent);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.tutorial-step-text{font-size:13px;color:var(--ink-soft);line-height:1.55;}
+.tutorial-step-text strong{color:var(--ink);font-weight:600;}
+.tutorial-footer{padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;}
+
+/* ── ROLE SCREEN ──────────────────────────────────────────────── */
+.email-row{margin-bottom:20px;}
+.email-label{font-size:12px;color:var(--ink-faint);margin-bottom:6px;display:block;}
+.email-input-wrap{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);overflow:hidden;transition:border-color .15s;}
+.email-input-wrap:focus-within{border-color:var(--accent);}
+.email-prefix{padding:10px 0 10px 14px;font-size:14px;color:var(--ink);white-space:nowrap;}
+.email-input{border:none;outline:none;padding:10px 12px;font-family:'Figtree',sans-serif;font-size:14px;color:var(--ink);background:transparent;width:180px;}
+.email-suffix{padding:10px 14px 10px 0;font-size:14px;color:var(--ink-faint);}
+.role-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.role-card{padding:16px 20px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--surface);text-align:left;cursor:pointer;transition:all .16s;font-family:'Figtree',sans-serif;}
+.role-card:hover{border-color:var(--accent);background:var(--accent-pale);}
+.role-card.selected{border-color:var(--accent);background:var(--accent-pale);box-shadow:0 0 0 3px var(--accent-border);}
+.role-card-title{font-size:14px;font-weight:600;margin-bottom:2px;color:var(--ink);}
+.role-card-sub{font-size:12px;color:var(--ink-faint);}
+
+/* ── HAS-TEAM QUESTION — Decision #5 ─────────────────────────── */
+.has-team-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;}
+.has-team-label{font-size:13.5px;color:var(--ink);margin-bottom:12px;display:block;font-weight:500;}
+.has-team-btns{display:flex;gap:10px;}
+.team-btn{flex:1;padding:11px 16px;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:transparent;font-family:'Figtree',sans-serif;font-size:13.5px;color:var(--ink-soft);cursor:pointer;transition:all .15s;font-weight:400;}
+.team-btn:hover{border-color:var(--accent);background:var(--accent-pale);}
+.team-btn.selected{border-color:var(--accent);background:var(--accent-pale);color:var(--accent);font-weight:600;}
+
+/* ── SUPPORT PROMPT SCREEN — Decision #8 ─────────────────────── */
+#s-support-prompt .center-wrap{align-items:flex-start;padding-top:60px;}
+.sp-prompt-box{background:var(--ink);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;position:relative;}
+/* DM Mono preservado para texto del prompt de Gemini */
+.sp-prompt-text{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.78);line-height:1.8;white-space:pre-wrap;max-height:320px;overflow-y:auto;}
+.sp-prompt-text::-webkit-scrollbar{width:4px;}
+.sp-prompt-text::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px;}
+.sp-copy-btn{margin-top:14px;padding:8px 16px;border-radius:var(--radius-sm);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);font-size:12px;font-family:'Figtree',sans-serif;font-weight:500;cursor:pointer;transition:all .14s;}
+.sp-copy-btn:hover{background:rgba(255,255,255,.18);}
+.sp-instruction{font-size:13px;color:var(--ink-soft);line-height:1.65;background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;}
+
+/* ── INVENTORY ────────────────────────────────────────────────── */
+#s-inventory{padding-bottom:80px;}
+.inventory-header{padding:32px 40px 0;max-width:820px;margin:0 auto;width:100%;}
+.inventory-body{padding:24px 40px 0;max-width:820px;margin:0 auto;width:100%;}
+.origin-note{background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:var(--radius);padding:14px 18px;font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:20px;}
+.origin-note strong{color:var(--accent);}
+.origin-note-anchor{display:block;margin-top:8px;font-size:11.5px;color:var(--ink-faint);font-style:italic;}
+
+/* ── LEGEND STRIP (s-inventory) ───────────────────────────────── */
+.legend-strip{display:flex;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:28px;overflow:hidden;}
+.legend-col{flex:1;padding:14px 18px;border-right:1px solid var(--line);}
+.legend-col:last-child{border-right:none;}
+.legend-col.consequence{background:var(--consequence);border-right:none;}
+.legend-label{font-family:'Figtree',sans-serif;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;display:block;margin-bottom:4px;}
+.legend-col:not(.consequence) .legend-label{color:var(--accent);}
+.legend-col.consequence .legend-label{color:var(--consequence-text);}
+.legend-def{font-size:13px;line-height:1.4;}
+.legend-col:not(.consequence) .legend-def{color:var(--ink-soft);}
+.legend-col.consequence .legend-def{color:var(--consequence-text);font-style:italic;}
+
+/* ── ACTIVITY GROUPS ──────────────────────────────────────────── */
+.act-group{margin-bottom:36px;}
+.act-group-header{display:flex;flex-direction:column;gap:4px;padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid var(--line);}
+.act-group-name{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);}
+.act-group-note{font-size:11.5px;color:var(--ink-faint);font-style:italic;line-height:1.5;}
+.act-row{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;transition:box-shadow .15s;}
+.act-row:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.act-row.custom{border-color:var(--accent-border);background:var(--accent-pale);}
+.act-main{padding:14px 16px 10px;border-bottom:1px solid var(--line);position:relative;}
+.act-name-text{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:2px;padding-right:28px;}
+.act-seq-text{font-size:13px;color:var(--ink-faint);line-height:1.5;}
+.act-name-input{width:100%;border:none;outline:none;font-family:'Figtree',sans-serif;font-size:13.5px;font-weight:600;background:transparent;color:var(--ink);padding-right:28px;}
+.act-seq-input{width:100%;border:none;outline:none;resize:none;font-family:'Figtree',sans-serif;font-size:13px;background:transparent;color:var(--ink-faint);height:38px;margin-top:3px;}
+.act-value-block{padding:12px 16px 10px;}
+.value-q-label{font-size:11px;color:var(--ink-faint);font-family:'Figtree',sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.value-q-hint{font-size:10.5px;color:var(--ink-faint);margin-bottom:6px;display:block;font-style:italic;}
+.value-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.v-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--line);background:transparent;font-family:'Figtree',sans-serif;font-size:12px;color:var(--ink-soft);cursor:pointer;transition:all .14s;white-space:nowrap;}
+.v-btn:hover{border-color:var(--accent);color:var(--accent);}
+.v-btn.sel{background:var(--accent-pale);border-color:var(--accent);color:var(--accent);font-weight:600;}
+.stream-block{padding:0 16px 12px;display:none;flex-wrap:wrap;gap:6px;}
+.stream-block.visible{display:flex;}
+.stream-label{font-size:11px;color:var(--ink-faint);width:100%;margin-bottom:4px;}
+.stream-btn{padding:4px 11px;border-radius:20px;border:1.5px solid var(--line);background:transparent;font-family:'Figtree',sans-serif;font-size:11.5px;color:var(--ink-soft);cursor:pointer;transition:all .14px;}
+.stream-btn:hover{border-color:var(--accent);}
+.stream-btn.selected{border-color:var(--accent);background:var(--accent-pale);color:var(--accent);font-weight:600;}
+.open-field-block{padding:0 16px 12px;display:none;}
+.open-field-block.visible{display:block;}
+.open-field-label{font-size:11px;color:var(--ink-faint);margin-bottom:5px;display:block;}
+.open-field-input{width:100%;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);font-family:'Figtree',sans-serif;font-size:12.5px;color:var(--ink);padding:8px 12px;outline:none;transition:border-color .15s;resize:none;}
+.open-field-input:focus{border-color:var(--accent);}
+.act-delete{position:absolute;top:14px;right:12px;background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:18px;padding:0 4px;transition:color .15s;line-height:1;}
+.act-delete:hover{color:#D86204;}
+.add-row-btn{width:100%;padding:10px 16px;border:1.5px dashed var(--line);border-radius:var(--radius);background:transparent;cursor:pointer;font-family:'Figtree',sans-serif;font-size:13px;color:var(--ink-faint);display:flex;align-items:center;gap:8px;transition:all .14s;margin-top:4px;}
+.add-row-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-pale);}
+.act-footer{position:fixed;bottom:0;left:0;right:0;background:var(--paper);border-top:1px solid var(--line);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;}
+.act-footer-hint{font-family:'Figtree',sans-serif;font-size:11px;color:var(--ink-faint);}
+
+/* ── UNDO TOAST ───────────────────────────────────────────────── */
+.undo-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:var(--radius);font-size:13px;display:flex;align-items:center;gap:12px;opacity:0;transition:all .25s;z-index:400;pointer-events:none;white-space:nowrap;}
+.undo-toast.visible{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
+.undo-btn{background:none;border:none;color:var(--accent-pale);font-family:'Figtree',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+
+/* ── LOADING ──────────────────────────────────────────────────── */
+#s-loading{background:var(--ink);justify-content:center;align-items:center;}
+.loading-wrap{text-align:center;max-width:420px;}
+.loading-treat{font-size:22px;font-weight:300;color:var(--paper);margin-bottom:8px;}
+.loading-sub{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:32px;line-height:1.65;}
+.loading-behind{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:20px;}
+.loading-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:32px;}
+.loading-step{font-size:13px;color:rgba(255,255,255,.25);transition:color .4s;}
+.loading-step.active{color:rgba(255,255,255,.8);}
+.loading-step.done{color:rgba(255,255,255,.35);}
+
+/* ── MIRROR ───────────────────────────────────────────────────── */
+#s-mirror .center-wrap{align-items:flex-start;padding-top:80px;}
+.mirror-card{background:var(--ink);border-radius:var(--radius-lg);padding:32px 36px;margin-bottom:24px;position:relative;overflow:hidden;}
+.mirror-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);}
+.mirror-headline{font-size:18px;font-weight:500;color:#fff;line-height:1.4;margin-bottom:14px;}
+.mirror-body{font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.75;}
+.mirror-bridge{font-size:15px;color:var(--ink-soft);line-height:1.75;margin-bottom:28px;}
+.mirror-quote{border-left:3px solid rgba(255,255,255,.2);margin-top:20px;padding:12px 16px;background:rgba(255,255,255,.04);border-radius:0 var(--radius-sm) var(--radius-sm) 0;}
+.mirror-quote-text{font-size:13px;color:rgba(255,255,255,.45);line-height:1.65;font-style:italic;}
+.mirror-quote-source{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-top:6px;display:block;}
+
+/* ── PYRAMID ──────────────────────────────────────────────────── */
+#s-pyramid .center-wrap{align-items:flex-start;padding-top:60px;}
+.pyramid-wrap{width:100%;margin-bottom:20px;}
+.pyr-row{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+.pyr-label-col{width:180px;flex-shrink:0;text-align:right;}
+.pyr-label-tag{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;}
+.pyr-label-desc{font-size:11px;color:var(--ink-soft);margin-top:2px;line-height:1.4;}
+.pyr-bar-col{flex:1;display:flex;align-items:center;}
+.pyr-bar{border-radius:var(--radius-sm);transition:all .5s ease;display:flex;align-items:center;justify-content:center;}
+.pyr-pct-col{width:48px;text-align:right;font-size:26px;font-weight:300;font-variant-numeric:tabular-nums;flex-shrink:0;}
+.pyr-insight{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);padding:18px 22px;font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:28px;}
+.pyr-insight strong{color:var(--ink);}
+
+/* ── FLUENCY SCREEN — Decision #9 ────────────────────────────── */
+#s-fluency .center-wrap{align-items:flex-start;padding-top:80px;}
+.fluency-intro{font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:24px;}
+.fluency-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.fluency-item{display:flex;align-items:center;gap:12px;padding:14px 18px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--surface);cursor:pointer;transition:all .15s;}
+.fluency-item:hover{border-color:var(--accent);background:var(--accent-pale);}
+.fluency-item.selected{border-color:var(--accent);background:var(--accent-pale);}
+.fluency-item-check{width:18px;height:18px;border:2px solid var(--line);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:11px;color:transparent;}
+.fluency-item.selected .fluency-item-check{background:var(--accent);border-color:var(--accent);color:#fff;}
+.fluency-item-name{font-size:13.5px;color:var(--ink);font-weight:500;}
+.fluency-item-capa{font-family:'Figtree',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-left:auto;flex-shrink:0;}
+.fluency-depth-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:24px;display:none;}
+.fluency-depth-block.visible{display:block;}
+.fluency-depth-q{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:14px;}
+.fluency-depth-opts{display:flex;flex-direction:column;gap:8px;}
+.fluency-depth-opt{padding:12px 16px;border:1.5px solid var(--line);border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-family:'Figtree',sans-serif;font-size:13px;color:var(--ink-soft);text-align:left;transition:all .14s;}
+.fluency-depth-opt:hover{border-color:var(--accent);background:var(--accent-pale);color:var(--ink);}
+.fluency-depth-opt.selected{border-color:var(--accent);background:var(--accent-pale);color:var(--ink);font-weight:500;}
+.fluency-skip{font-size:12px;color:var(--ink-faint);margin-top:8px;display:block;}
+
+/* ── REFLECTION ───────────────────────────────────────────────── */
+#s-reflection .center-wrap{align-items:flex-start;padding-top:80px;}
+.reflection-q{font-size:22px;font-weight:300;font-style:italic;line-height:1.4;margin-bottom:16px;letter-spacing:-.01em;}
+.reflection-hint{font-size:13px;color:var(--ink-faint);margin-bottom:20px;}
+.reflection-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.r-opt{padding:14px 18px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--surface);text-align:left;cursor:pointer;font-family:'Figtree',sans-serif;font-size:13.5px;color:var(--ink-soft);transition:all .14s;}
+.r-opt:hover{border-color:var(--accent);background:var(--accent-pale);color:var(--ink);}
+.r-opt.selected{border-color:var(--accent);background:var(--accent-pale);color:var(--ink);font-weight:500;}
+
+/* ── CLOSE / RESULTADO ────────────────────────────────────────── */
+#s-close .center-wrap{align-items:flex-start;padding-top:60px;overflow-y:auto;}
+.close-intro{font-size:15px;color:var(--ink-soft);line-height:1.75;margin-bottom:28px;}
+.uc-section-title{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px;display:block;}
+.uc-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.uc-card{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--radius);padding:20px 22px;cursor:pointer;transition:all .16s;position:relative;overflow:hidden;}
+.uc-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--line);transition:background .16s;}
+.uc-card:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(6,92,134,.08);}
+.uc-card:hover::before{background:var(--accent);}
+.uc-card.selected{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-border);}
+.uc-card.selected::before{background:var(--accent);}
+.uc-card-tag{font-family:'Figtree',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;display:block;}
+.uc-card.selected .uc-card-tag{color:var(--accent);}
+.uc-card-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+/* Decision #1 — línea secundaria "Basado en:" */
+.uc-card-based{font-size:11px;color:var(--accent);font-family:'Figtree',sans-serif;letter-spacing:.04em;margin-bottom:5px;}
+.uc-card-body{font-size:13px;color:var(--ink-soft);line-height:1.55;}
+
+/* Detail panel del caso de uso seleccionado */
+.uc-detail{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:12px;display:none;}
+.uc-detail.visible{display:block;}
+.uc-detail-label{font-family:'Figtree',sans-serif;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;display:block;}
+.uc-detail-tool{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px;display:block;}
+/* DM Mono preservado solo para texto de prompts — legibilidad de contenido tipo código */
+.uc-detail-prompt{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--ink-soft);line-height:1.7;white-space:pre-wrap;}
+.copy-btn{margin-top:12px;padding:7px 14px;border-radius:var(--radius-sm);background:var(--accent-pale);border:1px solid var(--accent-border);color:var(--accent);font-size:13px;font-family:'Figtree',sans-serif;font-weight:500;cursor:pointer;transition:all .14s;}
+.copy-btn:hover{background:var(--accent);color:#fff;}
+/* Decision #2 — "Funciona en Gemini" + Decision #4 — gobernanza */
+.uc-detail-footer{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;}
+.uc-detail-gemini-note{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;}
+.uc-detail-governance{font-size:12px;color:var(--ink-soft);font-style:italic;line-height:1.5;}
+
+/* Decision #3 — Bloque colapsable "¿Quieres armar tu propio prompt?" */
+.prompt-guide{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:24px;overflow:hidden;}
+.prompt-guide-summary{padding:14px 18px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;}
+.prompt-guide-summary::-webkit-details-marker{display:none;}
+.prompt-guide-summary::after{content:'﹢';font-size:16px;color:var(--ink-faint);transition:transform .2s;}
+details[open] .prompt-guide-summary::after{content:'−';}
+.prompt-guide-body{padding:0 18px 18px;border-top:1px solid var(--line);}
+.prompt-guide-body p{font-size:13px;color:var(--ink-soft);line-height:1.65;margin-top:14px;margin-bottom:10px;}
+.prompt-guide-body ol{padding-left:20px;display:flex;flex-direction:column;gap:8px;}
+.prompt-guide-body li{font-size:13px;color:var(--ink-soft);line-height:1.55;}
+.prompt-guide-body li strong{color:var(--ink);}
+.prompt-guide-body li em{color:var(--ink-faint);}
+.prompt-guide-note{font-size:12px;color:var(--ink-faint);font-style:italic;margin-top:12px!important;}
+
+/* ── GOVERNANCE BANNER (fijo antes de cards/Pieza3) ──────────── */
+.gov-banner{background:rgba(190,242,100,.08);border:1px solid rgba(190,242,100,.25);border-left:3px solid var(--kai-lime);border-radius:var(--radius);padding:12px 18px;margin-bottom:20px;font-size:13px;color:var(--ink-soft);line-height:1.6;}
+.gov-banner strong{color:var(--ink);}
+
+/* ── PIEZA 3 — guía de prompting progresiva (Support) ────────── */
+.p3-block{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:24px;}
+.p3-warmup{background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:var(--radius);padding:14px 18px;font-size:14px;color:var(--ink);line-height:1.65;margin-bottom:20px;}
+.p3-warmup strong{color:var(--accent);}
+.p3-divider{border:none;border-top:1px solid var(--line);margin:20px 0;}
+.p3-section-title{font-size:11px;font-weight:700;color:var(--kai-link);text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px;display:block;}
+.p3-ingredient{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;}
+.p3-num{width:24px;height:24px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.p3-ingredient-body{flex:1;}
+.p3-ingredient-title{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+.p3-ingredient-ex{font-size:13px;color:var(--ink-faint);font-style:italic;line-height:1.55;}
+.p3-advanced{margin-top:4px;}
+.p3-advanced-gate{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:12px;padding-top:4px;}
+.p3-advanced-note{font-size:13px;color:var(--ink-faint);margin-top:14px;font-style:italic;line-height:1.55;}
+.p3-advanced-closed .p3-advanced-content{display:none;}
+.p3-toggle{background:none;border:1px solid var(--line);border-radius:20px;padding:5px 16px;font-size:12px;color:var(--ink-soft);cursor:pointer;margin-top:12px;transition:all .15s;}
+.p3-toggle:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Privacy box + CTA */
+.privacy-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:24px;font-size:13px;color:var(--ink-soft);line-height:1.7;}
+.privacy-row{display:flex;gap:10px;margin-bottom:8px;}
+.privacy-row:last-child{margin-bottom:0;}
+.privacy-icon{color:var(--accent);flex-shrink:0;margin-top:2px;}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.submit-note{font-size:11.5px;color:var(--ink-faint);margin-top:8px;}
+
+/* ── PDF capture zone ─────────────────────────────────────────── */
+#capture-zone{position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:40px;}
+
+/* ── ANIMATIONS ───────────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .35s ease forwards;}
+
+/* ── RESPONSIVE ───────────────────────────────────────────────── */
+@media(max-width:600px){
+  .topbar,.act-footer{padding:12px 20px;}
+  .inventory-header,.inventory-body{padding-left:20px;padding-right:20px;}
+  h1{font-size:28px;}
+  .legend-strip{flex-direction:column;}
+  .tutorial-card{padding:24px;}
+  .pyr-label-col{width:120px;}
+}
+</style>
+</head>
+<body>
+<!-- ── UTILIDADES FIJAS ─────────────────────────────────────── -->
+<div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+<div class="undo-toast" id="undo-toast">
+  <span id="undo-msg">Flujo eliminado</span>
+  <button class="undo-btn" onclick="undoDelete()">Deshacer</button>
+</div>
+<div id="capture-zone"></div>
+
+<!-- ── MODAL: VALIDACIÓN ───────────────────────────────────── -->
+<div class="tutorial-overlay" id="validation-overlay">
+  <div class="tutorial-card fade-in" style="max-width:460px;">
+    <span class="eyebrow" id="val-eyebrow">Un momento</span>
+    <h2 style="font-size:19px;margin-bottom:10px;" id="val-headline"></h2>
+    <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.65;margin-bottom:24px;" id="val-body"></p>
+    <div class="tutorial-footer" style="justify-content:space-between;">
+      <button class="btn btn-ghost" onclick="closeValidation()">Continuar de todas formas</button>
+      <button class="btn btn-primary" onclick="closeValidation();scrollToFirst()">Completar ahora &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: COMPLETION ───────────────────────────────────── -->
+<div class="tutorial-overlay" id="completion-overlay">
+  <div class="tutorial-card fade-in" style="max-width:460px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:16px;">&#10003;</div>
+    <span class="eyebrow" style="display:block;text-align:center;">Inventario completado</span>
+    <h2 style="font-size:20px;margin-bottom:12px;">Tu mapa está listo.</h2>
+    <p style="font-size:13.5px;color:var(--ink-soft);line-height:1.65;margin-bottom:20px;" id="completion-body"></p>
+    <div style="background:var(--accent-pale);border:1px solid var(--accent-border);border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;text-align:left;">
+      <div style="font-family:'Figtree',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:6px;">Qué sigue</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.6;">En las próximas <strong>2 semanas</strong> recibes el mapa de tu área — los patrones colectivos y los casos de uso con mayor impacto para el equipo.</div>
+    </div>
+    <button class="btn btn-primary" onclick="closeCompletion()" style="width:100%;justify-content:center;">Ver mis casos de uso &rarr;</button>
+  </div>
+</div>
+
+<!-- ── MODAL: TUTORIAL — contenido se inyecta por JS según área ── -->
+<div class="tutorial-overlay" id="tutorial-overlay">
+  <div class="tutorial-card fade-in">
+    <span class="eyebrow">Antes de empezar</span>
+    <h2 style="font-size:20px;margin-bottom:4px;">Cómo funciona este inventario</h2>
+    <div class="tutorial-steps" id="tutorial-steps">
+      <!-- renderTutorial() inyecta los pasos según área -->
+    </div>
+    <div class="tutorial-footer">
+      <button class="btn btn-primary" onclick="closeTutorial()">Listo, empezar &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 1 — BIENVENIDA
+     Decision #7: solo 2 áreas (Investment / Support)
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-welcome" class="screen active">
+  <div class="center-wrap">
+    <div class="content fade-in">
+      <span class="eyebrow" id="welcome-area-tag">Krealo &middot; Activador AI 2026</span>
+      <h1>&iquest;En qu&eacute; actividades<br>de tu semana puede<br><strong>entrar AI ya?</strong></h1>
+      <!-- Subtítulo: actualizado dinámicamente por setArea() según equipo -->
+      <p class="lead" id="welcome-subtitle">La mayor&iacute;a usa AI para lo menor. Este inventario te muestra d&oacute;nde usarla para lo que importa.</p>
+      <div class="badge">&#9201; 20&ndash;25 min &middot; Individual &middot; Sin respuestas correctas</div>
+
+      <!-- Checklist — behavioral design (implementation intention) -->
+      <div class="prep-block" style="margin-top:20px;">
+        <span class="prep-title">Antes de empezar</span>
+        <div class="prep-items">
+          <div class="prep-item"><span class="prep-check">&#10003;</span><span><strong>20&ndash;25 minutos sin interrupciones</strong> &mdash; funciona mejor de corrido</span></div>
+          <div class="prep-item"><span class="prep-check">&#10003;</span><span>Notificaciones en silencio por un rato</span></div>
+          <div class="prep-item"><span class="prep-check">&#10003;</span><span>Piensa en tus <strong>&uacute;ltimas 8&ndash;10 semanas</strong> de trabajo, no solo esta semana</span></div>
+        </div>
+      </div>
+
+      <!-- Componente ámbar — restricción + recompensa. Independiente del checklist. -->
+      <div class="warning-amber">
+        <span class="warning-amber-icon">&#9888;</span>
+        <div>Flujo de una sola direcci&oacute;n &mdash; no hay vuelta atr&aacute;s entre pantallas. Al final recibes <span class="warning-amber-accent">tu prompt listo para usar.</span></div>
+      </div>
+
+      <div class="area-select-wrap">
+        <label class="area-select-label">Tu equipo determina los flujos que vas a evaluar. &iquest;Cu&aacute;l es el tuyo?</label>
+        <select class="area-select" id="area-select" onchange="setArea(this.value)">
+          <option value="">Selecciona tu equipo</option>
+          <option value="investment">Investment</option>
+          <option value="support">Support (Finance, Legal, Cyber, People)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="btn-welcome-next" onclick="go('s-role')" disabled>Ver c&oacute;mo distribuyo mi tiempo &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 2 — ROL
+     Decision #5: pregunta hasTeam entre grid y botón
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-role" class="screen">
+  <div class="topbar">
+    <span class="topbar-brand">Krealo<span class="ai-word">AI</span></span>
+    <span class="topbar-step">Paso 1 &middot; Tu perfil</span>
+  </div>
+  <div class="center-wrap">
+    <div class="content fade-in">
+      <span class="eyebrow">Paso 1 de 3 &middot; Tu perfil</span>
+      <h2>Tu rol define qu&eacute; flujos tienen m&aacute;s peso en tu diagn&oacute;stico.</h2>
+      <div class="email-row">
+        <label class="email-label">Tu correo Krealo &mdash; para personalizar tu ruta despu&eacute;s del diagn&oacute;stico.</label>
+        <div class="email-input-wrap">
+          <input class="email-input" id="email-input" type="text" placeholder="tu.nombre" oninput="validateEmail()">
+          <span class="email-suffix">@krealo.pe</span>
+        </div>
+      </div>
+      <div class="role-grid" id="role-grid"></div>
+      <!-- Decision #5 — pregunta binaria personas a cargo -->
+      <div class="has-team-block">
+        <span class="has-team-label">&iquest;Tienes personas a cargo directamente?</span>
+        <div class="has-team-btns">
+          <button class="team-btn" id="team-yes" onclick="setHasTeam(true)">S&iacute;</button>
+          <button class="team-btn" id="team-no" onclick="setHasTeam(false)">No</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="role-next" onclick="proceedFromRole()" disabled>Ir a mis actividades &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     OVERLAY: PROMPT DE SUPPORT
+     Ajuste sobre Decision Log #8: implementado como overlay modal
+     (no pantalla separada) para que aparezca como "pop-up" visible.
+     Aplica a TODOS los usuarios Support (no solo sin-equipo), ya que
+     ambos perfiles necesitan mapear sus actividades funcionales con Gemini.
+     ══════════════════════════════════════════════════════════ -->
+<div class="tutorial-overlay" id="support-prompt-overlay">
+  <div class="tutorial-card fade-in" style="max-width:640px;padding:32px 36px;">
+    <!-- Eyebrow pill estilo aprobado -->
+    <div style="display:inline-block;background:var(--kai-blue);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;border-radius:4px;padding:4px 10px;margin-bottom:18px;">ANTES DE TU INVENTARIO</div>
+    <h2 style="font-size:20px;font-weight:500;margin-bottom:18px;color:var(--ink);line-height:1.3;">Gemini ya sabe qu&eacute; preguntar. &Uacute;salo primero y llegas con la mitad del trabajo hecho.</h2>
+    <!-- 3 pasos numerados -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+      <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--ink-soft);line-height:1.55;">
+        <div style="min-width:22px;height:22px;background:var(--accent-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;margin-top:1px;">1</div>
+        <span>Copia el prompt de abajo y &aacute;brelo directamente en Gemini.</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--ink-soft);line-height:1.55;">
+        <div style="min-width:22px;height:22px;background:var(--accent-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;margin-top:1px;">2</div>
+        <span>Completa los datos que te pide &mdash; est&aacute;n marcados entre corchetes.</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;font-size:13px;color:var(--ink-soft);line-height:1.55;">
+        <div style="min-width:22px;height:22px;background:var(--accent-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;margin-top:1px;">3</div>
+        <!-- Variante dinámica: IC vs Manager, inyectada por renderSupportPromptOverlay() -->
+        <span id="sp-step3-text">Cuando tengas tu lista, vuelve y agr&eacute;gala un flujo a la vez. Puedes editar o eliminar cualquiera &mdash; incluso despu&eacute;s de agregarla.</span>
+      </div>
+    </div>
+    <!-- Prompt box -->
+    <div class="sp-prompt-box" style="margin-bottom:16px;">
+      <div class="sp-prompt-text" id="sp-prompt-text"></div>
+      <button class="sp-copy-btn" onclick="copySupportPromptAndOpenGemini()">Copiar prompt &rarr; abrir Gemini</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button class="btn btn-primary" onclick="closeSupportPromptAndLoad()" style="background:var(--kai-lime);color:var(--kai-navy);font-weight:700;">Ya tengo mi lista, ir al inventario &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 4 — INVENTARIO
+     Decision #6: grupo Gestión de Equipo si hasTeam=true
+     Decision #10 + #22: origin note completo con ancla
+     Decision #20: reframe pregunta de impacto
+     Decision #21: RUN reposicionado en leyenda
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-inventory" class="screen">
+  <div class="topbar">
+    <span class="topbar-brand">Krealo<span class="ai-word">AI</span></span>
+    <span class="topbar-step">Paso 2 &middot; Tu inventario</span>
+  </div>
+  <div class="inventory-header fade-in">
+    <span class="eyebrow">Tu inventario</span>
+    <h2 style="margin-bottom:8px;">Los flujos de tus &uacute;ltimas 8&ndash;10 semanas</h2>
+    <div class="origin-note" id="origin-note"></div>
+    <!-- Leyenda — Decision #21: RUN reposicionado -->
+    <div class="legend-strip">
+      <div class="legend-col">
+        <span class="legend-label">Peso</span>
+        <span class="legend-def">&iquest;Cu&aacute;nto espacio ocupa este flujo en tu semana t&iacute;pica?</span>
+      </div>
+      <div class="legend-col">
+        <span class="legend-label">En piloto autom&aacute;tico</span>
+        <span class="legend-def">La parte m&aacute;s mec&aacute;nica del flujo &mdash; lo que haces sin pensar demasiado. &iquest;Qu&eacute; pasar&iacute;a si <strong>esa parte mec&aacute;nica</strong> desapareciera?</span>
+      </div>
+      <div class="legend-col consequence">
+        <span class="legend-label">Con eso</span>
+        <span class="legend-def">construimos tu mapa de distribuci&oacute;n y tus primeros casos de uso con AI. </span>
+      </div>
+    </div>
+  </div>
+  <div class="inventory-body" id="act-container"></div>
+  <div class="act-footer">
+    <span class="act-footer-hint" id="progress-hint">0 flujos evaluados</span>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+      <button class="btn btn-primary" onclick="startLoading()">Calcular mi distribuci&oacute;n &rarr;</button>
+      <span class="act-footer-hint" id="inventory-cta-note" style="display:none;color:#BA7517;max-width:320px;text-align:right;">Evaluar todos tus flujos hace tu distribuci&oacute;n de tiempo m&aacute;s precisa. Si avanzas ahora, tu resultado puede no reflejar tu distribuci&oacute;n real.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 5 — LOADING
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-loading" class="screen">
+  <div class="center-wrap" style="background:var(--ink);">
+    <div class="loading-wrap fade-in">
+      <div style="font-size:36px;margin-bottom:16px;">—</div>
+      <div class="loading-treat">Buen momento para tomar agua, pararte un minuto, o simplemente respirar.</div>
+      <div class="loading-sub">Acabas de registrar semanas de trabajo en 20 minutos.<br>Eso ya es algo.</div>
+      <div class="loading-behind">Mientras tanto, estamos &mdash;</div>
+      <div class="loading-steps">
+        <div class="loading-step" id="ls1">&rarr; Calculando el peso de cada flujo</div>
+        <div class="loading-step" id="ls2">&rarr; Clasificando por tipo de impacto</div>
+        <div class="loading-step" id="ls3">&rarr; Construyendo tu distribuci&oacute;n RUN / DRIVE / GROW / SCALE</div>
+        <div class="loading-step" id="ls4">&rarr; Identificando d&oacute;nde AI tiene m&aacute;s palanca en tu caso</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 6 — PIRÁMIDE (incluye Mirror colapsado al inicio)
+     Mirror integrado como card de contexto antes de la visualización.
+     Elimina la pantalla s-mirror como screen separada.
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-pyramid" class="screen">
+  <div class="topbar">
+    <span class="topbar-brand">Krealo<span class="ai-word">AI</span></span>
+    <span class="topbar-step">Paso 3 &middot; Tu distribuci&oacute;n</span>
+  </div>
+  <div class="center-wrap" style="align-items:flex-start;padding-top:50px;">
+    <div class="content-wide fade-in">
+      <!-- Card del Mirror — contexto antes de los datos -->
+      <div class="mirror-card" id="mirror-card-content" style="margin-bottom:28px;"></div>
+      <span class="eyebrow">Tu distribuci&oacute;n de tiempo</span>
+      <h2>As&iacute; se ve tu semana</h2>
+      <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:20px;line-height:1.65;">Cada flujo que evaluaste tiene un peso y un impacto. Los organizamos en cuatro capas &mdash; de lo m&aacute;s operativo a lo m&aacute;s estrat&eacute;gico.</p>
+      <div class="pyramid-wrap" id="pyr-layers"></div>
+      <div class="pyr-insight" id="pyr-insight"></div>
+      <button class="btn btn-primary" onclick="proceedFromPyramid()">Una pregunta m&aacute;s &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 8 — AI FLUENCY (nueva)
+     Decision #9: multi-select RUN/DRIVE p3/p4, max 5
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-fluency" class="screen">
+  <div class="topbar">
+    <span class="topbar-brand">Krealo<span class="ai-word">AI</span></span>
+    <span class="topbar-step">Paso 4 &middot; AI hoy</span>
+  </div>
+  <div class="center-wrap">
+    <div class="content fade-in">
+      <span class="eyebrow">Una pregunta antes del cierre</span>
+      <h2>De estos flujos, &iquest;en cu&aacute;les ya est&aacute;s usando AI?</h2>
+      <p class="fluency-intro">Son los flujos que m&aacute;s tiempo te consumen &mdash; y donde AI tiene m&aacute;s potencial de impacto inmediato. Selecciona los que apliquen, o contin&uacute;a si todav&iacute;a no usas AI en ninguno.</p>
+      <div class="fluency-list" id="fluency-list"></div>
+      <!-- Pregunta de profundidad — aparece si hay selección -->
+      <div class="fluency-depth-block" id="fluency-depth-block">
+        <div class="fluency-depth-q">&iquest;C&oacute;mo la usas principalmente en esos flujos?</div>
+        <div class="fluency-depth-opts">
+          <button class="fluency-depth-opt" id="fd-basico" onclick="setFluencyDepth('basico', this)">Doy un prompt y tomo el resultado</button>
+          <button class="fluency-depth-opt" id="fd-iterativo" onclick="setFluencyDepth('iterativo', this)">Itero y eval&uacute;o hasta que me sirve</button>
+          <button class="fluency-depth-opt" id="fd-avanzado" onclick="setFluencyDepth('avanzado', this)">Le delego partes del flujo y superviso el resultado</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn btn-primary" id="fluency-next" onclick="continueFluency()">Continuar &rarr;</button>
+        <button class="btn btn-ghost" id="fluency-skip-btn" onclick="skipFluency()">Continuar sin seleccionar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 9 — REFLEXIÓN
+     Decision #16: REFLECTION_OPTS sin cambios
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-reflection" class="screen">
+  <div class="topbar">
+    <span class="topbar-brand">Krealo<span class="ai-word">AI</span></span>
+    <span class="topbar-step">Paso 5 &middot; Una pregunta</span>
+  </div>
+  <div class="center-wrap">
+    <div class="content fade-in">
+      <span class="eyebrow">Y por &uacute;ltimo</span>
+      <p class="reflection-q">&ldquo;Si recuperaras 5 horas a la semana de tu trabajo m&aacute;s rutinario, &iquest;en qu&eacute; las invertir&iacute;as?&rdquo;</p>
+      <p class="reflection-hint">Elige la que m&aacute;s resuena. No hay respuesta correcta &mdash; incluso si varias aplican, qu&eacute;date con una.</p>
+      <div class="reflection-opts" id="reflection-opts"></div>
+      <button class="btn btn-primary" onclick="tryGoClose()">Ver mi resultado &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 10 — CIERRE / RESULTADO
+     Decision #1: "Basado en:" en cards
+     Decision #2: "Funciona en Gemini"
+     Decision #3: bloque colapsable prompting propio
+     Decision #4: cue de gobernanza
+     ══════════════════════════════════════════════════════════ -->
+<div id="s-close" class="screen">
+  <div class="topbar">
+    <span class="topbar-brand">Krealo<span class="ai-word">AI</span></span>
+    <span class="topbar-step">Tu resultado</span>
+  </div>
+  <div class="center-wrap">
+    <div class="content fade-in">
+      <span class="eyebrow">Puntos de entrada sugeridos</span>
+      <h2>Por d&oacute;nde podr&iacute;as empezar</h2>
+      <p class="close-intro" id="close-intro"></p>
+      <!-- Governance — fijo, siempre visible antes del contenido -->
+      <div class="gov-banner">
+        <strong>Antes de usar estos prompts:</strong> revisa el output antes de adoptarlo. Si necesitas subir informaci&oacute;n sensible &mdash; datos de founders, portfolio, Credicorp, o informaci&oacute;n personal del equipo &mdash; anon&iacute;mizala primero.
+      </div>
+
+      <!-- Contenido dinámico: Investment → cards + Pieza 1
+                               Support → Pieza 3              -->
+      <div id="close-dynamic-content"></div>
+
+      <!-- Privacy box -->
+      <div class="privacy-box">
+        <strong style="display:block;margin-bottom:12px;">&iquest;Qu&eacute; pasa con lo que respondiste?</strong>
+        <div class="privacy-row"><span class="privacy-icon">&rarr;</span><span>Tus respuestas individuales son tuyas &mdash; nadie en el equipo ve tu inventario completo.</span></div>
+        <div class="privacy-row"><span class="privacy-icon">&rarr;</span><span>Lo que se consolida es el patr&oacute;n agregado por &aacute;rea: qu&eacute; flujos concentran m&aacute;s tiempo, d&oacute;nde AI tiene mayor potencial colectivo.</span></div>
+        <div class="privacy-row"><span class="privacy-icon">&rarr;</span><span>En las pr&oacute;ximas <strong>2 semanas</strong> compartimos el mapa de tu &aacute;rea &mdash; y los casos de uso con mayor impacto colectivo.</span></div>
+      </div>
+      <div class="cta-row">
+        <button class="btn btn-primary" onclick="submitData()" id="btn-submit">Enviar mi inventario &rarr;</button>
+        <button class="btn btn-outline" onclick="downloadPNG()" id="btn-download">Descargar mi mapa</button>
+      </div>
+      <p class="submit-note">Registrar es obligatorio para que tu inventario cuente en el an&aacute;lisis del equipo.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// v5: +hasTeam (Decision #5), +fluencyLevel/#23, +activitiesWithAI
+// ══════════════════════════════════════════════════════════════
+let area            = 'investment';
+let role            = null;
+let userEmail       = '';
+let hasTeam         = null;          // Decision #5
+let fluencyLevel    = null;          // Decision #9/#23: sin_uso|basico|iterativo|avanzado
+let activitiesWithAI = [];           // Decision #23
+let fluencyDepthChoice = null;       // selección de profundidad en s-fluency
+let fluencySelectedActs = [];        // actividades marcadas en s-fluency
+let activities      = {};
+let actIdSeq        = 0;
+let deletedActivity = null;
+let undoTimer       = null;
+let selectedUC      = null;
+let reflectionChoice = null;
+
+// ── AREA DETECTION (Decision #7: solo investment|support) ─────
+(function(){
+  var p = new URLSearchParams(window.location.search);
+  var a = (p.get('area') || '').toLowerCase();
+  if (['investment','support'].includes(a)) {
+    area = a;
+    var labels = {investment:'Investment', support:'Support'};
+    var tag = document.getElementById('welcome-area-tag');
+    if (tag) tag.textContent = 'Krealo · ' + labels[a] + ' · Activador AI 2026';
+  }
+})();
+
+// ══════════════════════════════════════════════════════════════
+// CONSTANTES
+// ══════════════════════════════════════════════════════════════
+
+// Decision #7: 2 roles sets
+const ROLES = {
+  investment: [
+    {id:'analyst',   title:'Analyst · Senior Analyst',    sub:'IC1–IC2 — Aprendiendo y aplicando los fundamentos del proceso de inversión'},
+    {id:'associate', title:'Associate · Senior Associate', sub:'IC3–IC4 — Liderando procesos con autonomía creciente'},
+    {id:'senior',    title:'VP · Principal',               sub:'IC5+ — Definiendo estrategia e impacto en Krealo y portfolio'},
+  ],
+  support: [
+    {id:'junior', title:'Analista · Senior Analista', sub:'IC1–IC2'},
+    {id:'mid',    title:'Especialista · Senior',      sub:'IC3–IC4'},
+    {id:'senior', title:'Lead · Head',                sub:'IC5+'},
+  ]
+};
+
+const PESO_OPTS = [
+  {id:'p1', label:'Menos de 1h'},
+  {id:'p2', label:'1 a 3 horas'},
+  {id:'p3', label:'3 a 6 horas'},
+  {id:'p4', label:'Más de 6 horas'},
+];
+
+// Decision #14: i2/i3/i4 reformulados; i4 condicional por área
+const IMPACTO_IDS = ['i1','i2','i3','i4'];
+function getImpactoLabel(id) {
+  var labels = {
+    i1: 'Nadie lo notaría',
+    i2: 'El equipo lo resolvería de otra forma',
+    i3: 'Alguien quedaría esperando sin poder avanzar',
+    i4: area === 'investment'
+      ? 'Afecta directamente un deal activo o una decisión de inversión'
+      : 'Bloquea un proceso interno o una decisión de negocio',
+  };
+  return labels[id] || '';
+}
+
+// Decision #21: RUN reposicionado como "donde AI tiene más palanca"
+const PYRAMID_META = {
+  run:  {label:'RUN',   desc:'Flujos recurrentes y de ejecución. Aquí AI tiene más palanca — las horas más recuperables con menor esfuerzo de adopción.'},
+  drive:{label:'DRIVE', desc:'Trabajo que mejora cómo opera el equipo o avanza los proyectos de forma más eficiente.'},
+  grow: {label:'GROW',  desc:'Análisis, relaciones y decisiones que generan valor diferencial — para Krealo y para las PortCos.'},
+  scale:{label:'SCALE', desc:'Iniciativas que amplían el alcance o impacto de Krealo: nuevas tesis, nuevos mercados, nuevas capacidades.'},
+};
+
+// Decision #16: sin cambios
+const REFLECTION_OPTS = [
+  {id:'r1', text:'Trabajo que hoy no llego a hacer — análisis más profundo, tesis, conversaciones estratégicas que postergamos'},
+  {id:'r2', text:'Tiempo real con mi equipo o las startups — conversaciones que se quedan en el calendario sin ocurrir'},
+  {id:'r3', text:'Trabajo creativo o de generación de ideas — cosas que requieren espacio mental, no urgencia'},
+  {id:'r4', text:'Tiempo personal fuera del trabajo — ejercicio, familia, hobbies, descanso'},
+  {id:'r5', text:'Honestamente, probablemente más trabajo — el mismo volumen pero con más calidad o más velocidad'},
+];
+
+const STREAM_MAP = {
+  'Análisis de información financiera de la startup':[{id:'s1',label:'Recolección de datos'},{id:'s2',label:'Análisis y modelado'},{id:'s3',label:'Síntesis y comunicación'}],
+  'Elaboración y presentación del investment memo':[{id:'s1',label:'Investigación'},{id:'s2',label:'Redacción del análisis'},{id:'s3',label:'Preparación de láminas'}],
+  'Construcción del modelo financiero':[{id:'s1',label:'Definición de supuestos'},{id:'s2',label:'Construcción del modelo'},{id:'s3',label:'Análisis de sensibilidad'}],
+  'Gestión end-to-end del proceso de due diligence':[{id:'s1',label:'Coordinación y comunicación'},{id:'s2',label:'Revisión de documentos'},{id:'s3',label:'Consolidación de hallazgos'}],
+  'Reporting al KIC — deals y portfolio performance':[{id:'s1',label:'Compilación de datos'},{id:'s2',label:'Narrativa y estructura'},{id:'s3',label:'Preparación y presentación'}],
+  'Apoyo en reporte mensual/trimestral de startups del portafolio':[{id:'s1',label:'Solicitar y consolidar KPIs'},{id:'s2',label:'Estructurar el reporte'},{id:'s3',label:'Revisión y distribución'}],
+};
+
+// Decision #15: Support usa variante 'default'
+const MIRROR_VARIANTS = {
+  analyst:{
+    headline:'El trabajo de análisis no desaparece. Cambia.',
+    body:'Los que avanzan más rápido en investment no son los que meten más horas — son los que liberaron la parte mecánica para tener más energía en la parte de criterio. Síntesis, primer pase de investigación, estructuración de datos: esas son las horas que se pueden recuperar con AI. Lo que no se puede delegar es el juicio sobre el founder, la lectura del mercado, la pregunta que nadie más hizo.',
+    quote:'Quienes usan AI con intención recuperan entre 2 y 8 horas semanales.',
+    quoteSource:'Adecco Group · Global Workforce of the Future 2024 · 35,000 trabajadores en 27 economías',
+    bridge:'Tu inventario acaba de mapear exactamente dónde está esa frontera en tu semana.',
+  },
+  associate:{
+    headline:'Usar AI para tareas no es lo mismo que usarla para pensar mejor.',
+    body:'La diferencia no está en el output final — está en dónde dentro del proceso pones a AI. Quien la usa solo para redactar emails acelera lo trivial. Quien la pone en el primer pase del memo, en el análisis de sensibilidad, o en la síntesis post-reunión libera su criterio para lo que importa: la defensa ante el KIC, la conversación difícil con el founder, la lectura del deal.',
+    quote:'La duplicación de productividad ocurre donde la adopción fue deliberada, no donde fue espontánea.',
+    quoteSource:'BCG · AI at Work Report 2024',
+    bridge:'Tu inventario identificó los flujos donde esa distinción tiene más peso en tu caso.',
+  },
+  senior:{
+    headline:'El criterio que construiste en años es tu ventaja. La pregunta es si lo estás activando.',
+    body:'A este nivel, el riesgo no es que AI reemplace tu trabajo — es que sigas dedicando tu semana a los pasos previos a ejercer tu criterio. Síntesis de mercado, estructuración de materiales, coordinación operativa: esos pasos tienen solución. Lo que no tiene sustituto es tu lectura del founder, tu posición en la negociación, tu tesis.',
+    quote:'Cuadruplicación de productividad en workflows donde la adopción fue intencional.',
+    quoteSource:'Bain & Company · Asia-Pacific PE Report 2026',
+    bridge:'Tu inventario separó qué parte de tu semana es criterio y qué parte es camino hacia él.',
+  },
+  default:{
+    headline:'El tiempo que recuperas con AI vale más que la herramienta.',
+    body:'Lo que importa no es cuánto tiempo ahorras con AI — sino en qué lo inviertes. Tu inventario empieza a responder esa pregunta para tu caso concreto.',
+    quote:'Quienes usan AI con intención recuperan entre 2 y 8 horas semanales.',
+    quoteSource:'Adecco Group · Global Workforce of the Future 2024 · 35,000 trabajadores en 27 economías',
+    bridge:'Con lo que acabas de mapear, podemos identificar dónde AI tiene más palanca en tu semana real.',
+  },
+};
+
+// Decision #12: AI_CANDIDATES — Support usa 'default'
+const AI_CANDIDATES = {
+  analyst:[
+    {wf:'Mapeo de targets e industrias',type:'síntesis',tool:'Google Gemini',
+     prompt:'Actúa como analista de inversiones en un corporate venture capital (CVC) enfocado en fintech, insurtech y healthtech en LATAM.\n\nTarea: necesito mapear startups activas en [SECTOR/VERTICAL] en los últimos 12 meses en [PAÚSES].\n\nDame:\n1. Lista de 10–15 empresas relevantes con: nombre, país, stage, último funding conocido y descripción breve de su modelo\n2. Las 2–3 tendencias que explican la actividad en este sector en LATAM\n3. Las preguntas que debería hacerme antes de priorizar targets para un CVC con foco estratégico'},
+    {wf:'Investigación de mercado y competencia',type:'análisis',tool:'Google Gemini',
+     prompt:'Actúa como analista de inversiones especializado en LATAM.\n\nContexto: estoy investigando [SECTOR] para evaluar [STARTUP TARGET] como posible inversión.\n\nTarea: dame un análisis de mercado que incluya:\n1. Tamaño y tasa de crecimiento del mercado en LATAM (con fuentes si las conoces)\n2. Los 3–5 competidores más relevantes para [STARTUP TARGET]: qué hacen diferente, cómo se posicionan\n3. Una señal de mercado o regulatoria que debería vigilar en los próximos 6 meses\n\nSé específico con LATAM, no uses datos de EE.UU. como proxy.'},
+    {wf:'Síntesis de reuniones y seguimiento de pendientes',type:'síntesis',tool:'Google Gemini',
+     prompt:'Actúa como asistente de trabajo de un analista de inversiones.\n\nContexto: acabo de tener una reunión con [CONTRAPARTE].\n\n[PEGA AQUÍ TUS NOTAS DE LA REUNIÓN]\n\nProduce:\n1. Los acuerdos principales en 4–5 bullets concisos\n2. Próximos pasos con responsable y fecha propuesta\n3. Borrador del email de seguimiento listo para enviar — tono profesional, directo, sin relleno'},
+    {wf:'Apoyo en elaboración de láminas para el comité',type:'estructuración',tool:'Google Gemini',
+     prompt:'Actúa como analista senior de inversiones en un CVC.\n\nContexto: tengo el análisis completo de [STARTUP] y necesito estructurar las láminas para el comité de inversión.\n\n[PEGA AQUÍ TU ANÁLISIS O LOS PUNTOS CLAVE]\n\nDame:\n1. Estructura recomendada de 8–10 slides con el título de cada una\n2. Los 3 argumentos de inversión que deben quedar clarísimos al terminar la presentación\n3. Las 3–4 preguntas difíciles que el comité probablemente va a hacer — y cómo responderlas'},
+  ],
+  associate:[
+    {wf:'Elaboración y presentación del investment memo',type:'estructuración',tool:'Google Gemini',
+     prompt:'Actúa como analista senior de inversiones en un CVC que invierte en startups de fintech, insurtech y healthtech en LATAM.\n\nContexto: estoy construyendo el investment memo de [STARTUP]. El memo es para el comité de inversión interno.\n\n[PEGA AQUÍ TU ANÁLISIS, HALLAZGOS DE DILIGENCIA O NOTAS CLAVE]\n\nDame:\n1. Estructura recomendada del memo (secciones y orden)\n2. Los 3 riesgos que necesito responder con más evidencia antes de presentar al comité\n3. El argumento de inversión en 3 oraciones — por qué esta startup, por qué ahora, por qué para este fondo'},
+    {wf:'Gestión end-to-end del proceso de due diligence',type:'coordinación',tool:'Google Gemini',
+     prompt:'Actúa como project manager de un proceso de diligencia de inversión.\n\nContexto: estoy coordinando el proceso de due diligence de [STARTUP] para un CVC. Deal size aproximado: [MONTO]. Stage: [SEED/SERIES A/etc].\n\nDame:\n1. Checklist de workstreams estándar para este tipo de deal (financiero, legal, comercial, técnico, equipo)\n2. Los 3 puntos donde los procesos de DD en LATAM suelen trabarse — y cómo anticiparlos\n3. Template de tracker de pendientes para usar con la startup: columnas, categorías, frecuencia de actualización recomendada'},
+    {wf:'Desarrollo y validación de tesis de inversión',type:'análisis',tool:'Google Gemini',
+     prompt:'Actúa como analista de inversiones especializado en mercados emergentes.\n\nContexto: estoy desarrollando una tesis de inversión en [VERTICAL] para un CVC enfocado en LATAM.\n\nHipótesis inicial: [DESCRIBE TU HIPÓTESIS EN 2–3 ORACIONES]\n\nDame:\n1. Las 3–5 señales de mercado que confirmarían o refutarían esta tesis — y cómo buscarlas\n2. Los referentes globales más relevantes: qué está pasando en EE.UU., Europa o Asia en este vertical, y qué es transferible a LATAM\n3. La pregunta más importante que le haría a un founder antes de avanzar con la tesis'},
+    {wf:'Seguimiento autónomo de startups del portafolio',type:'síntesis',tool:'Google Gemini',
+     prompt:'Actúa como analista de portafolio de un venture capital.\n\nContexto: tengo los datos del último período de [STARTUP]. Soy el responsable del seguimiento desde el fondo.\n\n[PEGA AQUÍ LOS KPIs, EL REPORTE O LAS NOTAS DEL PERÍODO]\n\nProduce:\n1. Síntesis del desempeño en 5 bullets — qué mejoró, qué no movió, qué retrocedió\n2. Las 2–3 señales de alerta que merecen seguimiento activo en el próximo período\n3. Las preguntas que haría en la próxima conversación con el equipo de la startup'},
+  ],
+  senior:[
+    {wf:'Reporting al KIC — deals y portfolio performance',type:'drafting',tool:'Google Gemini',
+     prompt:'Actúa como director de comunicaciones estratégicas de un fondo de venture capital.\n\nContexto: tengo que presentar al KIC los resultados del fondo — puede ser el pipeline de deals activos o el portfolio performance trimestral.\n\n[PEGA AQUÍ LOS DATOS DEL PERÍODO: IRR, TVPI, DEAL FLOW, HITOS DE PORTAFOLIO]\n\nProduce:\n1. Narrativa ejecutiva de 200 palabras para la apertura de la presentación — que conecte resultados del fondo con estrategia del grupo\n2. Los 2–3 wins del período y 1 aprendizaje que vale nombrar sin minimizarlo\n3. Cómo traduciría el pipeline actual al lenguaje de prioridades estratégicas del grupo corporativo'},
+    {wf:'Asesoría a founders en decisiones estratégicas',type:'análisis',tool:'Google Gemini',
+     prompt:'Actúa como advisor de venture capital con experiencia en startups B2B en LATAM.\n\nContexto: el founder de [STARTUP] enfrenta la siguiente situación: [DESCRIBE LA DECISIÓN O EL DILEMA EN 3–4 ORACIONES].\n\nDame:\n1. Las 3 opciones más comunes en este tipo de situación — con sus tradeoffs reales, no los de manual\n2. Las preguntas que le haría al founder para entender su contexto antes de opinar\n3. Cómo enmarcaría la conversación para ayudarlo a decidir sin imponerle una dirección'},
+    {wf:'Desarrollo de tesis de inversión diferenciadas',type:'síntesis',tool:'Google Gemini',
+     prompt:'Actúa como analista estratégico de un corporate venture capital.\n\nContexto: necesito actualizar la tesis del fondo en [VERTICAL]. El fondo tiene foco en LATAM y tiene acceso a distribución del grupo corporativo como ventaja estratégica.\n\nDame:\n1. Las 3 señales de mercado más relevantes de los últimos 6 meses en este vertical\n2. Cómo se están posicionando los CVCs y VCs más activos en este sector — qué tesis están apostando\n3. El argumento que usaría para re-rankear esta vertical en el portafolio — o para descartarla'},
+  ],
+  default:[
+    {wf:'Síntesis de reuniones y seguimiento',type:'síntesis',tool:'Google Gemini',
+     prompt:'Actúa como asistente de trabajo profesional.\n\nContexto: acabo de tener una reunión con [CONTRAPARTE].\n\n[PEGA AQUÍ TUS NOTAS]\n\nProduce:\n1. Los acuerdos principales en 4–5 bullets concisos\n2. Próximos pasos con responsable y fecha propuesta\n3. Borrador del email de seguimiento listo para enviar'},
+    {wf:'Investigación y síntesis de información',type:'síntesis',tool:'Google Gemini',
+     prompt:'Actúa como analista de investigación.\n\nTema: [DESCRIBE LO QUE NECESITAS INVESTIGAR]\n\nDame:\n1. Los 5 puntos más relevantes que debería saber sobre este tema\n2. Las fuentes o ángulos que normalmente se pasan por alto\n3. Las preguntas que me ayudarían a profundizar si necesito ir más lejos'},
+  ]
+};
+
+// ── CANDIDATOS DE GESTIÓN DE EQUIPO ───────────────────────────
+// Aplica cuando hasTeam=true. Se suma al pool de Investment.
+// Support con equipo usa Pieza 3 (no estos candidatos).
+const MGMT_CANDIDATES = [
+  {wf:'1:1s con el equipo', type:'síntesis', tool:'Google Gemini',
+   prompt:'Actúa como asistente de liderazgo.\n\nContexto: tengo una sesión de 1:1 con [NOMBRE] en [TIEMPO].\n\nLo que sé de su situación: [PEGA AQUÍ TUS NOTAS O CONTEXTO]\n\nProduce:\n1. Los 2–3 temas más importantes para trabajar en esta sesión, basados en el contexto\n2. Una pregunta de apertura que invite a la reflexión, no al reporte\n3. Borrador de seguimiento de compromisos acordados en la sesión anterior\n\nRevisa el output antes de usarlo — y si necesitas subir información sensible sobre la persona, anonímizala primero.'},
+  {wf:'Performance review y feedback', type:'estructuración', tool:'Google Gemini',
+   prompt:'Actúa como advisor de liderazgo con experiencia en conversaciones de desempeño.\n\nContexto: necesito preparar la evaluación de [NOMBRE]. Período: [PERÍODO].\n\nInputs que tengo: [PEGA AQUÍ OBSERVACIONES, EJEMPLOS, FEEDBACK 360]\n\nProduce:\n1. Síntesis del desempeño en 3 dimensiones: qué funcionó bien, qué necesita desarrollo, cuál es el patrón subyacente\n2. Los 2 mensajes clave que deben quedar claros al terminar la conversación\n3. Borrador de apertura — directo, sin suavizar el mensaje central\n\nRevisa el output antes de usarlo — y si necesitas subir información sensible sobre la persona, anonímizala primero.'},
+  {wf:'Reuniones de sincronización del equipo', type:'estructuración', tool:'Google Gemini',
+   prompt:'Actúa como facilitador de equipos de trabajo.\n\nContexto: tengo una reunión de sincronización con mi equipo. Asistentes: [NÚMERO] personas. Duración: [DURACIÓN].\n\nTemas pendientes y contexto: [PEGA AQUÍ TUS NOTAS]\n\nProduce:\n1. Agenda estructurada con tiempo asignado por punto\n2. Para cada punto: el objetivo concreto (¿qué debe resolverse o comunicarse?)\n3. La pregunta de cierre para confirmar que todos salieron alineados'},
+  {wf:'Conversaciones de desarrollo y carrera', type:'síntesis', tool:'Google Gemini',
+   prompt:'Actúa como coach de desarrollo profesional.\n\nContexto: voy a tener una conversación de desarrollo con [NOMBRE], que está en [NIVEL/ROL]. Su situación actual: [DESCRIBE EN 2–3 LÍNEAS].\n\nProduce:\n1. Las 2–3 preguntas que más abren la reflexión sobre dónde quiere ir y qué lo está frenando\n2. Cómo enmarcaría el gap entre donde está y donde quiere llegar — nombrándolo sin evaluarlo\n3. Un posible próximo paso concreto que pueda proponer si la conversación llega a ese punto\n\nRevisa el output antes de usarlo — y si necesitas subir información sensible sobre la persona, anonímizala primero.'},
+];
+
+// ── HELPERS DE ESTADO PARA PIEZA 3 ────────────────────────────
+// Estado 1: tiene actividades RUN/DRIVE con peso p3/p4 que NO marcó como "ya usa AI"
+// Estado 2: tiene actividades RUN/DRIVE pero TODAS están en activitiesWithAI
+// Estado 3: RUN+DRIVE = 0% (todo en GROW/SCALE)
+function getPieza3State() {
+  var runDriveActs = Object.values(activities).filter(function(act) {
+    var c = classify(act);
+    return (c === 'run' || c === 'drive') && (act.peso === 'p3' || act.peso === 'p4');
+  });
+  if (!runDriveActs.length) return 3;
+  var nonAI = runDriveActs.filter(function(act) {
+    return !activitiesWithAI.includes(act.name);
+  });
+  return nonAI.length > 0 ? 1 : 2;
+}
+
+function getTopNonAIRunDriveActivity() {
+  return Object.values(activities)
+    .filter(function(act) {
+      var c = classify(act);
+      return (c === 'run' || c === 'drive') && !activitiesWithAI.includes(act.name);
+    })
+    .sort(function(a, b) {
+      return ({'p4':0,'p3':1,'p2':2,'p1':3}[a.peso]||4) - ({'p4':0,'p3':1,'p2':2,'p1':3}[b.peso]||4);
+    })[0] || null;
+}
+
+// Decision #8: Prompts de Support por banda (de Prompts_Gemini_Inventario_Support_Krealo_v2.md)
+const SUPPORT_PROMPTS = {
+  junior: 'Un workflow es la secuencia de pasos que sigues para completar un objetivo de trabajo concreto, con un inicio claro, pasos identificables y un resultado. No es una responsabilidad amplia ("control de gastos") ni una tarea suelta ("mandar un correo"), sino el proceso completo: por ejemplo, "conciliación mensual de cuentas: descargar movimientos → cruzar con registros → identificar diferencias → reportar al líder".\n\nActúa como un estratega de negocio que conoce a fondo cómo opera Krealo, el brazo de corporate venture capital de Credicorp en Latinoamérica. Krealo no es un banco tradicional: es la unidad de innovación e inversión del grupo, un equipo pequeño donde cada persona de soporte (Finanzas, Legal, Cyber, People) sostiene procesos clave del día a día.\n\nTrabajo en el área de [tu función — ej: Finanzas, Cyber, People]. En concreto, [describe en 1–2 líneas tu responsabilidad principal — ej: "doy soporte técnico y atiendo incidentes de seguridad del equipo" / "ejecuto procesos de nómina y apoyo en experiencia del empleado"]. Mi trabajo se concentra en ejecutar tareas recurrentes y entregables bien definidos que dan soporte a mi función, con autonomía creciente.\n\nAyúdame a mapear entre 5 y 10 workflows propios de mi rol: los procesos concretos que ejecuto de forma habitual para que mi función opere. Para cada uno, dame:\n— Nombre del workflow (la secuencia, no la categoría general).\n— Una sola oración que describa qué implica, de inicio a fin.\n\nConcéntrate solo en mis workflows funcionales. Deja fuera cualquier actividad de gestión de personas o de equipo. Cada workflow debe tener un inicio y un cierre identificables; si no puedes decir dónde arranca y dónde termina, es una responsabilidad, no un workflow.',
+  mid: 'Un workflow es la secuencia de pasos que sigues para completar un objetivo de trabajo concreto, con un inicio claro, pasos identificables y un resultado. No es una responsabilidad amplia ("gestión de proveedores") ni una tarea suelta ("revisar un contrato"), sino el proceso completo de punta a punta: por ejemplo, "implementación de un nuevo control de cumplimiento: relevar el requerimiento → diseñar el control → coordinar con las áreas involucradas → ponerlo en marcha → monitorear su adopción".\n\nActúa como un estratega de negocio que conoce a fondo cómo opera Krealo, el brazo de corporate venture capital de Credicorp en Latinoamérica. Krealo no es un banco tradicional: es la unidad de innovación e inversión del grupo, un equipo pequeño donde las áreas de soporte (Finanzas, Legal, Cyber, People) son dueñas de procesos que sostienen al negocio y a las startups del portafolio.\n\nTrabajo en el área de [tu función — ej: Finanzas, Legal, Cyber, People]. En concreto, [describe en 1–2 líneas tu responsabilidad principal]. A esta altura soy owner de procesos y proyectos de mi función: los lidero de punta a punta, coordino con otras áreas de Krealo y con stakeholders en las startups o en Credicorp, y trabajo en mejorar y hacer más eficientes los procesos que manejo.\n\nAyúdame a mapear entre 5 y 10 workflows propios de mi rol: los procesos de los que soy responsable de principio a fin. Para cada uno, dame:\n— Nombre del workflow (la secuencia, no la categoría general).\n— Una sola oración que describa qué implica, de inicio a fin.\n\nConcéntrate en mis workflows funcionales como owner, incluyendo los que cruzan a otras áreas. Deja fuera la gestión de personas o de equipo. Cada workflow debe tener un inicio y un cierre identificables.',
+  senior: 'Un workflow es la secuencia de pasos que sigues para completar un objetivo de trabajo concreto, con un inicio claro, pasos identificables y un resultado. A tu nivel, muchos workflows son de estrategia y gobierno de tu función, no de ejecución: por ejemplo, "definición del plan anual del área: revisar prioridades del negocio → fijar objetivos y estándares de la función → asignar recursos y presupuesto → bajarlo a iniciativas concretas".\n\nActúa como un estratega de negocio que conoce a fondo cómo opera Krealo, el brazo de corporate venture capital de Credicorp en Latinoamérica. Krealo no es un banco tradicional: es la unidad de innovación e inversión del grupo, donde cada función de soporte (Finanzas, Legal, Cyber, People) es dueña de su estrategia, sus estándares y su relación con Credicorp.\n\nLidero el área de [tu función — ej: Finanzas, Legal, Cyber, People] en Krealo. En concreto, [describe en 1–2 líneas el alcance de tu función]. A esta altura soy dueño/a de la estrategia, los estándares y el gobierno de mi función: defino cómo opera, la represento ante Krealo y Credicorp, tomo decisiones de riesgo, recursos y prioridades, y planifico hacia dónde va.\n\nAyúdame a mapear entre 5 y 10 workflows propios de mi rol como responsable de la función. Para cada uno, dame:\n— Nombre del workflow (la secuencia, no la categoría general).\n— Una sola oración que describa qué implica, de inicio a fin.\n\nIncluye en particular la planificación y priorización de tu área como uno de los workflows. Concéntrate en workflows funcionales, estratégicos y de gobierno. Deja fuera la gestión de personas del día a día — que se mapea por separado.',
+};
+
+// Decision #6: Grupo Gestión de Equipo (hasTeam=true, aplica a ambas áreas)
+// Nota: Decision Log menciona 7 actividades pero lista 6. Se implementan las 6 listadas.
+const TEAM_MGMT_GROUP = {
+  group: 'Gestión de Equipo',
+  microNote: '',
+  items: [
+    {name:'1:1s con el equipo',          seq:'Preparar agenda → reunirse individualmente → registrar compromisos → hacer seguimiento entre sesiones'},
+    {name:'Revisión del trabajo del equipo', seq:'Recibir o solicitar entregables → revisar calidad y alineación → dar feedback → validar o pedir revisión'},
+    {name:'Coordinación y distribución de trabajo', seq:'Revisar carga y capacidad → asignar o reasignar responsabilidades → asegurar claridad de expectativas → hacer seguimiento'},
+    {name:'Reuniones de sincronización del equipo', seq:'Preparar agenda → facilitar la reunión → registrar acuerdos → hacer seguimiento de pendientes'},
+    {name:'Conversaciones de desarrollo y carrera', seq:'Identificar momento → preparar perspectiva → abrir la conversación → acordar pasos concretos → dar seguimiento'},
+    {name:'Performance review y feedback', seq:'Recopilar inputs y observaciones → estructurar la evaluación → conducir la conversación → documentar compromisos → hacer seguimiento'},
+  ]
+};
+
+// Decision #10: micro-notas por grupo y nivel (solo Investment)
+const MICRO_NOTES = {
+  analyst:   {'Due Diligence & Structuring':'Si no has participado en un deal activo recientemente, evalúa basándote en el último que hayas visto o apoyado.'},
+  associate: {'Due Diligence & Structuring':'Si no has liderado un deal activo recientemente, evalúa basándote en el último que hayas gestionado.',
+              'Partnerships':'Si no hay iniciativas activas en este momento, evalúa basándote en la última que hayas trabajado.'},
+  senior:    {'Liderazgo de Deals':'Si no has cerrado un deal recientemente, evalúa basándote en el último proceso que hayas liderado.',
+              'Partnerships':'Si no hay iniciativas activas en este momento, evalúa basándote en la última que hayas trabajado.'},
+};
+
+// ACT_DATA Investment (sin cambios de v4 — contenido validado)
+const ACT_DATA = {
+  analyst:[
+    {group:'Deal Sourcing',items:[
+      {name:'Mapeo de targets e industrias',seq:'Definir criterios → identificar startups en bases y ecosistema → clasificar por relevancia → registrar en Attio → presentar en reunión de pipeline'},
+      {name:'Investigación de mercado y competencia',seq:'Recibir encargo → identificar fuentes → estructurar hallazgos → sintetizar en documento o láminas → compartir con el equipo'},
+      {name:'Seguimiento del ecosistema VC/CVC',seq:'Revisar newsletters y reportes → filtrar señales pertinentes → registrar o compartir hallazgos → actualizar lectura propia del mercado'},
+      {name:'Preparación y seguimiento de reuniones con founders',seq:'Preparar contexto previo → asistir y tomar notas → sintetizar acuerdos y próximos pasos → hacer seguimiento de pendientes'},
+    ]},
+    {group:'Due Diligence & Structuring',items:[
+      {name:'Análisis de información financiera de la startup',seq:'Recibir documentos del data room → revisar financieros y KPIs → identificar inconsistencias o preguntas → sintetizar hallazgos para el equipo senior'},
+      {name:'Gestión y organización del data room',seq:'Recibir documentos → organizar por categorías → verificar completitud → hacer seguimiento de documentos faltantes con la startup'},
+      {name:'Construcción de modelo financiero básico',seq:'Recibir supuestos → construir estructura de proyecciones → incorporar datos reales → presentar para revisión'},
+      {name:'Apoyo en elaboración de láminas para el comité',seq:'Recibir estructura del memo → traducir análisis a formato de presentación → iterar con feedback → dejar versión lista para revisión final'},
+      {name:'Coordinación del proceso de diligencia',seq:'Compilar lista de pendientes → enviar pedidos a la startup → hacer seguimiento de respuestas → actualizar tracker del deal'},
+    ]},
+    {group:'Portfolio Management',items:[
+      {name:'Apoyo en reporte mensual/trimestral de startups del portafolio',seq:'Solicitar información → consolidar KPIs → estructurar el reporte → revisar con el asociado responsable → dejar listo para distribución'},
+      {name:'Análisis de benchmarks de mercado para portafolio',seq:'Definir métricas a comparar → identificar peers del sector → construir tabla comparativa → sintetizar implicancias para la startup asignada'},
+      {name:'Coordinación con equipos de finanzas de las startups',seq:'Enviar solicitudes → hacer seguimiento → consolidar lo recibido → escalar inconsistencias al asociado responsable'},
+    ]},
+    {group:'Coordinación Interna',items:[
+      {name:'Síntesis de reuniones y seguimiento de pendientes',seq:'Tomar notas durante la reunión → estructurar acuerdos y próximos pasos → distribuir al equipo → hacer seguimiento hasta cierre'},
+      {name:'Preparación de materiales para reuniones internas',seq:'Recibir agenda o contexto → compilar información relevante → estructurar el material → distribuir con anticipación'},
+    ]},
+  ],
+  associate:[
+    {group:'Deal Sourcing',items:[
+      {name:'Liderazgo del mapeo de targets e industrias',seq:'Definir la vertical a trabajar → dirigir al analista en la búsqueda → revisar y enriquecer la lista → presentar y defender en reunión de pipeline'},
+      {name:'Desarrollo y validación de tesis de inversión',seq:'Identificar hipótesis de mercado → investigar y validar con datos externos → construir argumento → contrastar con prioridades de Credicorp → presentar al equipo senior'},
+      {name:'Gestión de relación con founders en evaluación',seq:'Establecer primer contacto → conducir reuniones → hacer seguimiento durante el proceso → mantener la relación independientemente del resultado'},
+      {name:'Gestión del pipeline en Attio',seq:'Actualizar estado de cada target → registrar notas de reuniones → producir reporte de pipeline para el equipo senior → identificar prioridades del trimestre'},
+    ]},
+    {group:'Due Diligence & Structuring',items:[
+      {name:'Gestión end-to-end del proceso de due diligence',seq:'Definir plan de DD → coordinar workstreams (financiero, legal, comercial, tech) → gestionar comunicación → consolidar hallazgos → presentar al equipo senior'},
+      {name:'Elaboración y presentación del investment memo',seq:'Construir estructura del análisis → integrar hallazgos de DD → redactar el memo completo → preparar láminas del comité → presentar y defender ante el equipo senior'},
+      {name:'Construcción del modelo financiero',seq:'Definir supuestos → construir proyecciones → incorporar análisis de sensibilidad → revisar con el senior → presentar implicancias de valuación'},
+      {name:'Coordinación multi-stakeholder del deal',seq:'Gestionar agenda con Krealo, startup, asesores y Credicorp → asegurar alineación → resolver bloqueos operativos del proceso'},
+      {name:'Revisión de documentos de estructuración',seq:'Leer y entender term sheet o SPA → identificar puntos críticos → escalar dudas al equipo senior o legal → registrar compromisos acordados'},
+    ]},
+    {group:'Portfolio Management',items:[
+      {name:'Seguimiento autónomo de startups del portafolio',seq:'Solicitar reportes periódicos → revisar KPIs y ejecución financiera → identificar señales de riesgo → reportar al equipo senior → hacer seguimiento de compromisos'},
+      {name:'Análisis de desempeño y benchmarks de startups',seq:'Definir métricas clave → construir o actualizar modelo → comparar con peers → sintetizar implicancias → presentar en reunión de portafolio'},
+      {name:'Participación en boards y comités de startups',seq:'Preparar contexto previo → participar en la sesión → registrar acuerdos y compromisos → hacer seguimiento → reportar a Krealo'},
+    ]},
+    {group:'Partnerships',items:[
+      {name:'Identificación de oportunidades de sinergia',seq:'Revisar capacidades de la startup vs. pain points de unidades de Credicorp → mapear el fit → priorizar → presentar al equipo senior'},
+      {name:'Activación del sponsor interno en Credicorp',seq:'Identificar el ejecutivo más relevante → preparar el caso → facilitar la conversación inicial → asegurar compromiso de avanzar'},
+      {name:'Seguimiento de iniciativas de partnerships activas',seq:'Hacer seguimiento quincenal → desbloquear fricciones operativas → reportar KPIs vs. baseline → escalar decisiones que requieren nivel senior'},
+    ]},
+    {group:'Reporting & Coordinación',items:[
+      {name:'Reporting de status al equipo senior',seq:'Compilar avances de deals y portafolio → estructurar el reporte → presentar en reunión → responder preguntas del equipo senior'},
+      {name:'Preparación de materiales para el comité y Primera Línea',seq:'Recibir encargo → estructurar el análisis → producir las láminas → iterar con feedback → cerrar versión final'},
+    ]},
+  ],
+  senior:[
+    {group:'Sourcing & Tesis',items:[
+      {name:'Diseño de estrategia de sourcing por verticales y mercados',seq:'Analizar señales y prioridades de Credicorp → definir verticales prioritarias → comunicar al equipo → dirigir el proceso de mapeo → ajustar en función del deal flow'},
+      {name:'Desarrollo de tesis de inversión diferenciadas',seq:'Identificar tensión o hipótesis de mercado → investigar con fuentes primarias y secundarias → construir el argumento → validar con Primera Línea → formalizar como marco de decisión'},
+      {name:'Gestión autónoma de relación con founders y ecosistema',seq:'Mantener red activa → identificar oportunidades inbound y outbound → calificar proactivamente → introducir al equipo cuando el fit es claro'},
+      {name:'Actualización de tesis y reasignación de capital',seq:'Sintetizar tendencias del sector LATAM → benchmarkar vs. peers → re-rankear verticales → proponer ajuste de allocation → presentar al comité con heatmap sectorial'},
+    ]},
+    {group:'Liderazgo de Deals',items:[
+      {name:'Liderazgo de procesos complejos de due diligence',seq:'Diseñar el plan de DD → asignar workstreams al equipo → supervisar calidad y avance → tomar decisiones de criterio senior → consolidar la posición de Krealo antes del comité'},
+      {name:'Estructuración de transacciones y negociación de términos',seq:'Definir la estructura con el equipo legal → negociar directamente con founders y asesores → tomar decisiones de trade-off → cerrar la documentación'},
+      {name:'Presentación y defensa de casos de inversión ante el comité',seq:'Preparar el argumento completo → co-liderar la sesión del comité → responder preguntas → incorporar condiciones o compromisos resultantes'},
+      {name:'Decisión de follow-on y reservas',seq:'Evaluar desempeño y condiciones de la nueva ronda → re-underwrite la tesis → calcular pro-rata y reservas → alinear con la dirección de Krealo → draftar recomendación al comité'},
+    ]},
+    {group:'Gestión Estratégica de Portafolio',items:[
+      {name:'Gestión estratégica de startups prioritarias',seq:'Mantener visibilidad continua del desempeño → participar en boards estratégicos → identificar oportunidades o riesgos → tomar decisiones de alto impacto con los founders'},
+      {name:'Asesoría a founders en decisiones estratégicas',seq:'Recibir consulta o identificar situación → analizar opciones con perspectiva de mercado y portafolio → ofrecer recomendación → hacer seguimiento del resultado'},
+      {name:'Anticipación y gestión de situaciones críticas en startups',seq:'Detectar señales tempranas → evaluar severidad → diseñar plan de intervención → coordinar con founders y co-inversores → hacer seguimiento hasta resolución'},
+      {name:'Planificación de fundraising y estrategias de salida',seq:'Monitorear condiciones y desempeño → iniciar conversación sobre timing y opciones → conectar con potenciales inversores o compradores → acompañar el proceso hasta cierre'},
+    ]},
+    {group:'Partnerships',items:[
+      {name:'Orquestación de valor agregado portafolio-Credicorp',seq:'Mapear fit entre startups y roadmaps de BUs de Credicorp → priorizar → activar sponsor interno → supervisar pipeline de sinergias → reportar al KIC'},
+      {name:'Scoping y lanzamiento de pilotos',seq:'Facilitar workshops entre founders y BUs → definir caso de uso y métricas → draftar el acuerdo de piloto → lanzar con plan claro de KPIs'},
+      {name:'Gestión de la relación founder-corporativo',seq:'Traducir entre velocidad startup y proceso corporativo → desbloquear fricciones → coachear al founder en enterprise selling → gestionar expectativas de la BU'},
+    ]},
+    {group:'Liderazgo Organizacional',items:[
+      {name:'Reporting al KIC — deals y portfolio performance',seq:'Preparar deck mensual o trimestral → presentar deals activos o portfolio performance → responder preguntas del KIC → registrar compromisos y acuerdos'},
+      {name:'Representación de Krealo en el ecosistema',seq:'Identificar foros de alto perfil → preparar posición o mensaje de Krealo → participar como voz del fondo → capturar señales → compartirlas con el equipo'},
+      {name:'Thought leadership y posicionamiento del fondo',seq:'Identificar momento sectorial o hito → draftar punto de vista → alinear con comms de Credicorp → publicar → trackear inbound de deals y talento'},
+    ]},
+  ],
+};
+
+// ══════════════════════════════════════════════════════════════
+// CLASIFICACIÓN
+// ══════════════════════════════════════════════════════════════
+function classify(act) {
+  var p = act.peso, i = act.impacto;
+  if (!p || !i) return 'run';
+  var pn = parseInt(p[1]), inn = parseInt(i[1]);
+  if (inn === 4 && pn >= 3) return 'scale';
+  if (inn >= 3 && pn >= 2)  return 'grow';
+  if (inn >= 2 && pn >= 2)  return 'drive';
+  return 'run';
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════
+// s-mirror eliminado como pantalla separada — integrado en s-pyramid
+const PROGRESS = {
+  's-welcome':0,'s-role':10,
+  's-inventory':28,'s-loading':50,
+  's-pyramid':65,'s-fluency':80,'s-reflection':90,'s-close':100
+};
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  document.getElementById('prog').style.width = (PROGRESS[id] || 0) + '%';
+  if (id === 's-pyramid')    { renderMirror(); renderPyramid(); }
+  if (id === 's-fluency')    renderFluency();
+  if (id === 's-reflection') renderReflection();
+  if (id === 's-close')      renderClose();
+}
+
+// Desde pirámide: verifica si hay actividades que califican para fluency
+function proceedFromPyramid() {
+  var q = getQualifyingFluencyActivities();
+  if (!q.length) {
+    fluencyLevel = 'sin_uso';
+    activitiesWithAI = [];
+    go('s-reflection');
+  } else {
+    go('s-fluency');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// TUTORIAL — contenido condicional por área
+// Investment: actividades pre-cargadas del career framework
+// Support: actividades vienen de Gemini, inventario empieza vacío
+// ══════════════════════════════════════════════════════════════
+var TUTORIAL_STEPS = {
+  investment: [
+    {
+      title: 'Los flujos que ves son un punto de partida, no una lista de expectativas.',
+      body:  'Puedes leerlos todos primero, ajustar los que no apliquen y luego evaluarlos — o ir de uno a la vez. Como te funcione mejor.'
+    },
+    {
+      title: 'Dos preguntas por flujo: tiempo e importancia.',
+      body:  'Cada una tiene una sola respuesta. Si quieres añadir contexto, hay un campo de texto libre.'
+    },
+    {
+      title: 'Si borras un flujo sin querer, tienes 5 segundos para deshacerlo.',
+      body:  'Aparece un aviso en la parte inferior. Y una vez que avanzas de pantalla, no hay vuelta atrás.'
+    },
+    {
+      title: 'Al terminar ves cómo distribuyes tu tiempo.',
+      body:  'Respondes dos preguntas de contexto y recibes tu primer prompt de AI listo para usar. El proceso completo toma 20–25 minutos.'
+    },
+  ],
+  support: [
+    {
+      title: 'Tu lista de Gemini es el punto de partida.',
+      body:  'Agrégala un flujo a la vez — con su nombre y los pasos principales. Sin nombre, el inventario pierde contexto.' + (hasTeam ? ' Ya tienes algunos de gestión de equipo pre-cargados.' : '')
+    },
+    {
+      title: 'Dos preguntas por flujo: tiempo e importancia.',
+      body:  'Cada una tiene una sola respuesta. Si quieres añadir contexto, hay un campo de texto libre.'
+    },
+    {
+      title: 'Si borras un flujo sin querer, tienes 5 segundos para deshacerlo.',
+      body:  'Aparece un aviso en la parte inferior. Y una vez que avanzas de pantalla, no hay vuelta atrás.'
+    },
+    {
+      title: 'Al terminar ves cómo distribuyes tu tiempo.',
+      body:  'Respondes dos preguntas de contexto y recibes tu primer prompt de AI listo para usar. El proceso completo toma 20–25 minutos.'
+    },
+  ],
+};
+
+function renderTutorial() {
+  var steps = (area === 'support') ? TUTORIAL_STEPS.support : TUTORIAL_STEPS.investment;
+  var container = document.getElementById('tutorial-steps');
+  if (!container) return;
+  container.innerHTML = steps.map(function(s, i) {
+    return '<div class="tutorial-step">'
+      + '<div class="tutorial-step-num">' + (i+1) + '</div>'
+      + '<div class="tutorial-step-text"><strong>' + s.title + '</strong> ' + s.body + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// closeTutorial: Investment → loadInventory | Support → prompt overlay primero
+function closeTutorial() {
+  document.getElementById('tutorial-overlay').classList.remove('visible');
+  if (area === 'support') {
+    renderSupportPromptOverlay();
+    document.getElementById('support-prompt-overlay').classList.add('visible');
+  } else {
+    loadInventory();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// EMAIL + ROL + HAS-TEAM (Decisions #5, #7)
+// ══════════════════════════════════════════════════════════════
+function validateEmail() {
+  var v = document.getElementById('email-input').value.trim();
+  userEmail = v + '@krealo.pe';
+  checkRoleNext();
+}
+
+// Decision #5: ahora requiere email + role + hasTeam
+function checkRoleNext() {
+  var emailOk = document.getElementById('email-input').value.trim().length > 0;
+  document.getElementById('role-next').disabled = !(emailOk && role && hasTeam !== null);
+}
+
+function setHasTeam(val) {
+  hasTeam = val;
+  document.getElementById('team-yes').classList.toggle('selected', val === true);
+  document.getElementById('team-no').classList.toggle('selected', val === false);
+  checkRoleNext();
+}
+
+function buildRoleGrid() {
+  var roles = area === 'investment' ? ROLES.investment : ROLES.support;
+  var grid = document.getElementById('role-grid');
+  grid.innerHTML = '';
+  roles.forEach(function(r) {
+    var btn = document.createElement('button');
+    btn.className = 'role-card';
+    btn.id = 'rc-' + r.id;
+    btn.innerHTML = '<div class="role-card-title">' + r.title + '</div><div class="role-card-sub">' + r.sub + '</div>';
+    btn.onclick = function() {
+      role = r.id;
+      roles.forEach(function(x){ document.getElementById('rc-' + x.id).classList.remove('selected'); });
+      btn.classList.add('selected');
+      checkRoleNext();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// Orden correcto: Modal instrucciones → [Support: prompt Gemini] → Inventario
+// El tutorial modal siempre va primero (ambas áreas).
+// closeTutorial() enruta según área.
+function proceedFromRole() {
+  renderTutorial();
+  document.getElementById('tutorial-overlay').classList.add('visible');
+}
+
+// ══════════════════════════════════════════════════════════════
+// SUPPORT PROMPT OVERLAY (Decision #8 — versión overlay)
+// ══════════════════════════════════════════════════════════════
+function renderSupportPromptOverlay() {
+  var promptKey = role || 'junior';
+  var text = SUPPORT_PROMPTS[promptKey] || SUPPORT_PROMPTS.junior;
+  var el = document.getElementById('sp-prompt-text');
+  if (el) el.textContent = text;
+  // Paso 3 dinámico: IC vs Manager
+  var step3 = document.getElementById('sp-step3-text');
+  if (step3) {
+    step3.innerHTML = hasTeam
+      ? 'Cuando tengas tu lista, vuelve y agr&eacute;gala un flujo a la vez. Ya tienes algunos de gesti&oacute;n de equipo pre-cargados. Puedes editar o eliminar cualquiera &mdash; incluso despu&eacute;s de agregarla.'
+      : 'Cuando tengas tu lista, vuelve y agr&eacute;gala un flujo a la vez. Puedes editar o eliminar cualquiera &mdash; incluso despu&eacute;s de agregarla.';
+  }
+}
+
+function closeSupportPromptAndLoad() {
+  document.getElementById('support-prompt-overlay').classList.remove('visible');
+  loadInventory();
+}
+
+// Doble acción: copia prompt + abre Gemini en nueva pestaña
+function copySupportPromptAndOpenGemini() {
+  var el = document.getElementById('sp-prompt-text');
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(function() {
+    window.open('https://gemini.google.com/', '_blank');
+    var btn = document.querySelector('.sp-copy-btn');
+    var orig = btn.textContent;
+    btn.textContent = '¡Copiado! Abriendo Gemini...';
+    setTimeout(function(){ btn.textContent = orig; }, 2500);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// INVENTARIO — loadInventory (Decisions #6, #10, #22)
+// ══════════════════════════════════════════════════════════════
+function loadInventory() {
+  activities = {}; actIdSeq = 0;
+  var container = document.getElementById('act-container');
+  container.innerHTML = '';
+  var originNote = document.getElementById('origin-note');
+
+  // Decision #10 + #22: origin note completo con ancla de normalización
+  var noteInvestment = '<strong>Empieza por los flujos pre-cargados para tu rol.</strong> Puedes leerlos todos primero, ajustar los que no apliquen y luego evaluarlos — o ir de uno a la vez. Como te funcione mejor.<span class="origin-note-anchor">En equipos como el de Krealo, entre el 50 y 70% de los flujos suele caer en las capas operativas — es el punto de partida esperado, no el resultado.</span>';
+  var noteSupport   = '<strong>Empieza por los flujos que identificaste con Gemini.</strong> Puedes agregarlos todos primero y luego evaluarlos, o hacerlo uno a la vez — como te funcione mejor.<span class="origin-note-anchor">En equipos como el de Krealo, entre el 50 y 70% de los flujos suele caer en las capas operativas — es el punto de partida esperado, no el resultado.</span>';
+
+  originNote.innerHTML = area === 'investment' ? noteInvestment : noteSupport;
+
+  // Cargar actividades pre-cargadas según área
+  if (area === 'investment') {
+    var data = ACT_DATA[role] || [];
+    data.forEach(function(group) {
+      container.appendChild(buildGroupEl(group.group, group.items, role));
+    });
+  } else {
+    // Support sin hasTeam: inventario vacío (el usuario llena desde Gemini)
+    if (!hasTeam) {
+      var gDiv = document.createElement('div');
+      gDiv.className = 'act-group';
+      var gh = document.createElement('div');
+      gh.className = 'act-group-header';
+      gh.innerHTML = '<span class="act-group-name">Mis flujos</span>';
+      gDiv.appendChild(gh);
+      gDiv.appendChild(makeAddBtn(gDiv, 'Mis flujos'));
+      container.appendChild(gDiv);
+    }
+  }
+
+  // Decision #6: grupo Gestión de Equipo si hasTeam=true (aplica a ambas áreas)
+  if (hasTeam) {
+    container.appendChild(buildGroupEl(TEAM_MGMT_GROUP.group, TEAM_MGMT_GROUP.items, null));
+  }
+
+  go('s-inventory');
+  updateHint();
+}
+
+function buildGroupEl(groupName, items, roleKey) {
+  var gDiv = document.createElement('div');
+  gDiv.className = 'act-group';
+  var gh = document.createElement('div');
+  gh.className = 'act-group-header';
+  // Decision #10: micro-nota si aplica
+  var microNote = (roleKey && MICRO_NOTES[roleKey] && MICRO_NOTES[roleKey][groupName]) || '';
+  gh.innerHTML = '<span class="act-group-name">' + groupName + '</span>'
+    + (microNote ? '<span class="act-group-note">' + microNote + '</span>' : '');
+  gDiv.appendChild(gh);
+  items.forEach(function(item) {
+    var id = 'a' + (++actIdSeq);
+    activities[id] = {name:item.name, seq:item.seq, group:groupName, peso:null, impacto:null, stream:null, note:'', fixed:true};
+    gDiv.appendChild(buildRow(id, item.name, item.seq, false));
+  });
+  gDiv.appendChild(makeAddBtn(gDiv, groupName));
+  return gDiv;
+}
+
+function makeAddBtn(gDiv, groupName) {
+  var addBtn = document.createElement('button');
+  addBtn.className = 'add-row-btn';
+  addBtn.textContent = '+ Agregar flujo';
+  addBtn.onclick = function(){ addCustomRow(gDiv, addBtn, groupName); };
+  return addBtn;
+}
+
+// Decision #20: reframe pregunta de impacto ("piloto automático")
+function buildRow(id, name, seq, isCustom) {
+  var row = document.createElement('div');
+  row.className = 'act-row' + (isCustom ? ' custom' : '');
+  row.id = 'row-' + id;
+
+  var streamKey = name;
+  var streams = STREAM_MAP[streamKey] || [];
+  if (!streams.length) {
+    Object.keys(STREAM_MAP).forEach(function(k) {
+      if (k.normalize('NFC').trim() === name.normalize('NFC').trim()) streams = STREAM_MAP[k];
+    });
+  }
+  if (activities[id]) activities[id].streamKey = streamKey;
+
+  var streamHtml = '';
+  if (streams.length) {
+    streamHtml = '<div class="stream-block" id="stream-' + id + '"><span class="stream-label">¿Qué parte consume más tiempo en este flujo?</span>';
+    streams.forEach(function(s) {
+      streamHtml += '<button class="stream-btn" id="sb-' + id + '-' + s.id + '" onclick="setStream(\'' + id + '\',\'' + s.id + '\')">' + s.label + '</button>';
+    });
+    streamHtml += '</div>';
+  }
+
+  var nameContent = isCustom
+    ? '<input class="act-name-input" placeholder="Nombre del flujo" value="' + name + '" oninput="activities[\'' + id + '\'].name=this.value">'
+    : '<div class="act-name-text">' + name + '</div>';
+  var seqContent = isCustom
+    ? '<textarea class="act-seq-input" placeholder="Pasos principales (opcional)" oninput="activities[\'' + id + '\'].seq=this.value">' + seq + '</textarea>'
+    : '<div class="act-seq-text">' + seq + '</div>';
+
+  var pesoHtml = '';
+  PESO_OPTS.forEach(function(o) {
+    pesoHtml += '<button class="v-btn" id="pb-' + id + '-' + o.id + '" onclick="setPeso(\'' + id + '\',\'' + o.id + '\')">' + o.label + '</button>';
+  });
+
+  // Decision #14: etiquetas i2/i3/i4 reformuladas vía getImpactoLabel()
+  var impactoHtml = '';
+  IMPACTO_IDS.forEach(function(oid) {
+    impactoHtml += '<button class="v-btn" id="ib-' + id + '-' + oid + '" onclick="setImpacto(\'' + id + '\',\'' + oid + '\')">' + getImpactoLabel(oid) + '</button>';
+  });
+
+  row.innerHTML =
+    '<div class="act-main"><button class="act-delete" onclick="deleteRow(\'' + id + '\')" title="Eliminar">&times;</button>' + nameContent + seqContent + '</div>'
+    + '<div class="act-value-block">'
+    + '<span class="value-q-label">¿Cuánto tiempo ocupa en tu semana típica?</span>'
+    + '<div class="value-btns" style="margin-bottom:12px;">' + pesoHtml + '</div>'
+    // Decision #20: reframe pregunta de impacto
+    + '<span class="value-q-label">Si esta parte mec&aacute;nica desapareciera ma&ntilde;ana, &iquest;qu&eacute; pasar&iacute;a?</span>'
+    + '<span class="value-q-hint">Elige la consecuencia que mejor la describe — una sola.</span>'
+    + '<div class="value-btns">' + impactoHtml + '</div>'
+    + '</div>'
+    + streamHtml
+    + '<div class="open-field-block" id="note-' + id + '">'
+    + '<label class="open-field-label">Contexto adicional (opcional)</label>'
+    + '<textarea class="open-field-input" rows="2" oninput="activities[\'' + id + '\'].note=this.value"></textarea>'
+    + '</div>';
+  return row;
+}
+
+function setPeso(id, val) {
+  activities[id].peso = val;
+  PESO_OPTS.forEach(function(o) {
+    var b = document.getElementById('pb-' + id + '-' + o.id);
+    if (b) { b.className = 'v-btn'; if (o.id === val) b.classList.add('sel'); }
+  });
+  tryShowNote(id); updateHint();
+}
+
+function setImpacto(id, val) {
+  activities[id].impacto = val;
+  IMPACTO_IDS.forEach(function(oid) {
+    var b = document.getElementById('ib-' + id + '-' + oid);
+    if (b) { b.className = 'v-btn'; if (oid === val) b.classList.add('sel'); }
+  });
+  tryShowNote(id); updateHint();
+}
+
+function setStream(id, val) {
+  activities[id].stream = val;
+  var key = activities[id].streamKey || activities[id].name;
+  var streams = STREAM_MAP[key] || [];
+  streams.forEach(function(s) {
+    var b = document.getElementById('sb-' + id + '-' + s.id);
+    if (b) { b.className = 'stream-btn'; if (s.id === val) b.classList.add('selected'); }
+  });
+}
+
+function tryShowNote(id) {
+  var nb = document.getElementById('note-' + id);
+  if (nb && activities[id].peso && activities[id].impacto) nb.classList.add('visible');
+}
+
+function deleteRow(id) {
+  var act = activities[id];
+  var row = document.getElementById('row-' + id);
+  if (!act || !row) return;
+  deletedActivity = {id:id, act:act, nextSibling:row.nextSibling, parent:row.parentNode, html:row.outerHTML};
+  row.remove();
+  delete activities[id];
+  updateHint();
+  showUndoToast(act.name || 'Flujo sin nombre');
+}
+
+function showUndoToast(name) {
+  if (undoTimer) clearTimeout(undoTimer);
+  var t = document.getElementById('undo-toast');
+  var label = name.length > 30 ? name.slice(0,30) + '…' : name;
+  document.getElementById('undo-msg').textContent = '"' + label + '" eliminado';
+  t.classList.add('visible');
+  undoTimer = setTimeout(function(){ t.classList.remove('visible'); deletedActivity = null; }, 5000);
+}
+
+function undoDelete() {
+  if (!deletedActivity) return;
+  clearTimeout(undoTimer);
+  document.getElementById('undo-toast').classList.remove('visible');
+  var d = deletedActivity;
+  activities[d.id] = d.act;
+  var tmp = document.createElement('div');
+  tmp.innerHTML = d.html;
+  var restored = tmp.firstChild;
+  if (d.nextSibling) d.parent.insertBefore(restored, d.nextSibling);
+  else d.parent.appendChild(restored);
+  deletedActivity = null;
+  updateHint();
+}
+
+function addCustomRow(gDiv, addBtn, groupName) {
+  var id = 'a' + (++actIdSeq);
+  activities[id] = {name:'', seq:'', group:groupName, peso:null, impacto:null, stream:null, note:'', fixed:false};
+  gDiv.insertBefore(buildRow(id, '', '', true), addBtn);
+  updateHint();
+}
+
+function updateHint() {
+  var ids = Object.keys(activities);
+  var done = ids.filter(function(id){ return activities[id].peso && activities[id].impacto; }).length;
+  var h = document.getElementById('progress-hint');
+  if (h) h.textContent = done + ' de ' + ids.length + ' flujos evaluados';
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOADING
+// ══════════════════════════════════════════════════════════════
+function startLoading() {
+  var ids = Object.keys(activities);
+  var incomplete = ids.filter(function(id){ return !activities[id].peso || !activities[id].impacto; });
+  var done = ids.length - incomplete.length;
+  var note = document.getElementById('inventory-cta-note');
+  if (done === 0) { showValidationModal(incomplete.length, true); if(note) note.style.display='block'; return; }
+  if (incomplete.length > 0) { if(note) note.style.display='block'; showValidationModal(incomplete.length, false); return; }
+  if(note) note.style.display='none';
+  go('s-loading');
+  var steps = ['ls1','ls2','ls3','ls4'];
+  var i = 0;
+  var interval = setInterval(function() {
+    if (i > 0) {
+      var prev = document.getElementById(steps[i-1]);
+      if (prev) prev.classList.replace('active','done');
+    }
+    if (i < steps.length) {
+      var cur = document.getElementById(steps[i]);
+      if (cur) cur.classList.add('active');
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(function(){ go('s-pyramid'); }, 800);
+    }
+  }, 2000);
+}
+
+// ══════════════════════════════════════════════════════════════
+// MIRROR (Decision #15: Support usa variante default)
+// ══════════════════════════════════════════════════════════════
+function renderMirror() {
+  var key = (area === 'investment' && ['analyst','associate','senior'].includes(role)) ? role : 'default';
+  var v = MIRROR_VARIANTS[key];
+  var quoteHtml = v.quote
+    ? '<div class="mirror-quote"><div class="mirror-quote-text">' + v.quote + '</div><span class="mirror-quote-source">' + v.quoteSource + '</span></div>'
+    : '';
+  // bridge text integrado al pie del mirror card (elemento mirror-bridge-text
+  // eliminado al colapsar s-mirror + s-pyramid en una pantalla — v6)
+  document.getElementById('mirror-card-content').innerHTML =
+    '<div class="mirror-headline">' + v.headline + '</div>'
+    + '<div class="mirror-body">' + v.body + '</div>'
+    + quoteHtml
+    + '<div style="margin-top:16px;font-size:13px;color:rgba(255,255,255,.55);line-height:1.6;">' + v.bridge + '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// PYRAMID (Decision #21: PYRAMID_META.run.desc actualizado)
+// ══════════════════════════════════════════════════════════════
+function renderPyramid() {
+  var counts = {run:0,drive:0,grow:0,scale:0};
+  var examples = {run:[],drive:[],grow:[],scale:[]};
+  Object.values(activities).forEach(function(act) {
+    var l = classify(act);
+    counts[l]++;
+    if (examples[l].length < 1 && act.name) examples[l].push(act.name);
+  });
+  var total = Object.values(counts).reduce(function(a,b){return a+b;},0) || 1;
+  var pcts = {};
+  Object.keys(counts).forEach(function(k){ pcts[k] = Math.round(counts[k]/total*100); });
+
+  var container = document.getElementById('pyr-layers');
+  container.innerHTML = '';
+  var pyrColors = {run:'#D86204',drive:'#18CF67',grow:'#754FD8',scale:'#065C86'};
+  ['scale','grow','drive','run'].forEach(function(key) {
+    var m = PYRAMID_META[key];
+    var pct = pcts[key];
+    var barW = Math.max(8, pct);
+    var barH = Math.max(32, Math.round(32 + (pct/100)*80));
+    var ex = examples[key].length ? 'Ej: ' + examples[key][0] : '';
+    var row = document.createElement('div');
+    row.className = 'pyr-row';
+    row.innerHTML =
+      '<div class="pyr-label-col">'
+      + '<div class="pyr-label-tag" style="color:' + pyrColors[key] + '">' + m.label + '</div>'
+      + '<div class="pyr-label-desc">' + m.desc + '</div>'
+      + (ex ? '<div style="font-size:10px;color:var(--ink-faint);font-style:italic;margin-top:2px;">' + ex + '</div>' : '')
+      + '</div>'
+      + '<div class="pyr-bar-col"><div class="pyr-bar" style="width:' + barW + '%;min-height:' + barH + 'px;background:' + pyrColors[key] + '22;border-left:4px solid ' + pyrColors[key] + ';border-radius:0 4px 4px 0;"></div></div>'
+      + '<div class="pyr-pct-col" style="color:' + pyrColors[key] + '">' + pct + '%</div>';
+    container.appendChild(row);
+  });
+
+  var runPct = pcts.run;
+  var insight = '';
+  if (runPct >= 60) {
+    insight = '<strong>Más del ' + runPct + '% de tu semana está en RUN.</strong> Aquí es exactamente donde AI tiene más palanca — es donde se recuperan más horas con menos esfuerzo de adopción. El primer movimiento natural no es saltar a SCALE — es mover tiempo a DRIVE haciendo lo mismo con menos fricción. Con DRIVE estabilizado, el camino hacia GROW y SCALE se abre solo.';
+  } else if (runPct >= 35) {
+    insight = '<strong>El ' + runPct + '% en RUN es un punto de partida razonable.</strong> La oportunidad concreta está en identificar qué flujos dentro de esa capa se pueden hacer más rápido con AI — y qué harías con ese tiempo recuperado.';
+  } else {
+    insight = '<strong>Tu distribución ya muestra más tiempo en capas estratégicas.</strong> Aquí la palanca de AI es diferente: no se trata de ahorrar tiempo en RUN — se trata de hacer más con el mismo tiempo en GROW y SCALE. ¿En qué análisis o decisiones AI podría darte más profundidad o velocidad?';
+  }
+  document.getElementById('pyr-insight').innerHTML = insight;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FLUENCY SCREEN (Decision #9)
+// ══════════════════════════════════════════════════════════════
+function getQualifyingFluencyActivities() {
+  return Object.values(activities)
+    .filter(function(act) {
+      var c = classify(act);
+      return (c === 'run' || c === 'drive') && (act.peso === 'p3' || act.peso === 'p4');
+    })
+    .sort(function(a,b) {
+      var pOrder = {p4:0, p3:1};
+      return (pOrder[a.peso]||2) - (pOrder[b.peso]||2);
+    })
+    .slice(0,5);
+}
+
+function renderFluency() {
+  fluencySelectedActs = [];
+  fluencyDepthChoice = null;
+  var list = document.getElementById('fluency-list');
+  list.innerHTML = '';
+  var depth = document.getElementById('fluency-depth-block');
+  depth.classList.remove('visible');
+  document.querySelectorAll('.fluency-depth-opt').forEach(function(b){ b.classList.remove('selected'); });
+
+  var q = getQualifyingFluencyActivities();
+  q.forEach(function(act) {
+    var item = document.createElement('div');
+    item.className = 'fluency-item';
+    var capa = classify(act).toUpperCase();
+    item.innerHTML =
+      '<div class="fluency-item-check">✓</div>'
+      + '<span class="fluency-item-name">' + act.name + '</span>'
+      + '<span class="fluency-item-capa">' + capa + '</span>';
+    item.onclick = function(){ toggleFluencyActivity(act.name, item); };
+    list.appendChild(item);
+  });
+}
+
+function toggleFluencyActivity(name, el) {
+  var idx = fluencySelectedActs.indexOf(name);
+  if (idx >= 0) fluencySelectedActs.splice(idx,1);
+  else fluencySelectedActs.push(name);
+  el.classList.toggle('selected', fluencySelectedActs.includes(name));
+  var depth = document.getElementById('fluency-depth-block');
+  if (fluencySelectedActs.length > 0) {
+    depth.classList.add('visible');
+  } else {
+    depth.classList.remove('visible');
+    fluencyDepthChoice = null;
+    document.querySelectorAll('.fluency-depth-opt').forEach(function(b){ b.classList.remove('selected'); });
+  }
+}
+
+function setFluencyDepth(val, el) {
+  fluencyDepthChoice = val;
+  document.querySelectorAll('.fluency-depth-opt').forEach(function(b){ b.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function continueFluency() {
+  // Requiere depth si hay actividades seleccionadas
+  if (fluencySelectedActs.length > 0 && !fluencyDepthChoice) {
+    var depthBlock = document.getElementById('fluency-depth-block');
+    if (depthBlock) { depthBlock.style.outline = '2px solid var(--kai-lime)'; setTimeout(function(){ depthBlock.style.outline=''; },1800); }
+    return;
+  }
+  fluencyLevel = fluencySelectedActs.length > 0 ? (fluencyDepthChoice || 'basico') : 'sin_uso';
+  activitiesWithAI = fluencySelectedActs.slice();
+  go('s-reflection');
+}
+
+// Botón ghost — salta toda la fluency sin selección
+function skipFluency() {
+  fluencyLevel = 'sin_uso';
+  activitiesWithAI = [];
+  fluencySelectedActs = [];
+  fluencyDepthChoice = null;
+  go('s-reflection');
+}
+
+// Reflexión — validación suave si no seleccionó opción
+function tryGoClose() {
+  if (!reflectionChoice) {
+    var opts = document.getElementById('reflection-opts');
+    if (opts) {
+      opts.style.outline = '2px solid var(--kai-lime)';
+      opts.style.borderRadius = '8px';
+      setTimeout(function(){ opts.style.outline=''; opts.style.borderRadius=''; }, 1800);
+    }
+    return;
+  }
+  go('s-close');
+}
+
+// ══════════════════════════════════════════════════════════════
+// REFLECTION (Decision #16: sin cambios)
+// ══════════════════════════════════════════════════════════════
+function renderReflection() {
+  var container = document.getElementById('reflection-opts');
+  container.innerHTML = '';
+  REFLECTION_OPTS.forEach(function(opt) {
+    var btn = document.createElement('button');
+    btn.className = 'r-opt';
+    btn.id = 'ro-' + opt.id;
+    btn.textContent = opt.text;
+    btn.onclick = function() {
+      reflectionChoice = opt.id;
+      REFLECTION_OPTS.forEach(function(o){ document.getElementById('ro-' + o.id).classList.remove('selected'); });
+      btn.classList.add('selected');
+    };
+    container.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// CLOSE — Investment (cards + Pieza 1) vs Support (Pieza 3)
+// ══════════════════════════════════════════════════════════════
+function renderClose() {
+  var counts = {run:0,drive:0,grow:0,scale:0};
+  Object.values(activities).forEach(function(act){ counts[classify(act)]++; });
+  var total = Object.values(counts).reduce(function(a,b){return a+b;},0) || 1;
+  var runPct  = Math.round(counts.run/total*100);
+  var drivePct = Math.round(counts.drive/total*100);
+  var runDriveZero = (runPct + drivePct) === 0;
+
+  var container = document.getElementById('close-dynamic-content');
+  container.innerHTML = '';
+
+  if (area === 'support') {
+    // ── Support: intro afirmativa + Pieza 3 ──────────────────
+    document.getElementById('close-intro').textContent =
+      'Mapeaste cómo distribuyes tu semana. Ahora tienes lo que necesitas para construir tu primer punto de entrada con AI.';
+    container.appendChild(buildPieza3());
+
+  } else {
+    // ── Investment: intro + cards + Pieza 1 ──────────────────
+    if (runDriveZero) {
+      document.getElementById('close-intro').textContent =
+        'Tu semana está concentrada en trabajo estratégico. Estos son los casos donde AI amplifica ese impacto.';
+      // Flag en payload — posible inflación hacia GROW/SCALE
+      window._closeRunDriveZeroFlag = true;
+    } else {
+      document.getElementById('close-intro').textContent = runPct >= 50
+        ? 'Con más del ' + runPct + '% de tu tiempo en flujos operativos, estos son los puntos de entrada con mayor retorno inmediato para ti.'
+        : 'Tu semana ya está más concentrada en trabajo estratégico. Estos casos de uso amplían tu impacto donde ya estás operando.';
+      window._closeRunDriveZeroFlag = false;
+    }
+
+    // Pool de candidatos: role + gestión si tiene equipo
+    var baseCandidates = AI_CANDIDATES[role] || AI_CANDIDATES.default;
+    var pool = hasTeam ? baseCandidates.concat(MGMT_CANDIDATES) : baseCandidates.slice();
+
+    var highPesoActs = Object.values(activities)
+      .filter(function(a){ return a.peso === 'p3' || a.peso === 'p4'; })
+      .map(function(a){ return a.name; });
+
+    var matched   = pool.filter(function(c){ return highPesoActs.includes(c.wf); });
+    var unmatched = pool.filter(function(c){ return !highPesoActs.includes(c.wf); });
+    var sel = matched.concat(unmatched).filter(function(c,i,arr){
+      return arr.findIndex(function(x){ return x.wf === c.wf; }) === i;
+    }).slice(0,3);
+    if (!sel.length) sel = baseCandidates.slice(0,3);
+
+    // Título sección
+    var sectionTitle = document.createElement('span');
+    sectionTitle.className = 'uc-section-title';
+    sectionTitle.textContent = 'Opciones de punto de entrada — selecciona una para ver el prompt';
+    container.appendChild(sectionTitle);
+
+    // Cards
+    var grid = document.createElement('div');
+    grid.className = 'uc-grid';
+    grid.id = 'uc-cards';
+    sel.forEach(function(uc, i) {
+      var matchedAct = highPesoActs.find(function(n){ return n === uc.wf; });
+      var basadoHtml = matchedAct ? '<div class="uc-card-based">Basado en: ' + matchedAct + '</div>' : '';
+      var card = document.createElement('div');
+      card.className = 'uc-card';
+      card.innerHTML =
+        '<span class="uc-card-tag">Opción ' + (i+1) + '</span>'
+        + '<div class="uc-card-title">' + uc.wf + '</div>'
+        + basadoHtml
+        + '<div class="uc-card-body">AI entra en la parte de <strong>' + uc.type + '</strong> — el paso que más tiempo toma antes de llegar a donde tu criterio importa.</div>';
+      card.onclick = function(){ selectUC(uc, card); };
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+
+    // Panel expandido del prompt seleccionado
+    var detail = document.createElement('div');
+    detail.className = 'uc-detail';
+    detail.id = 'uc-detail';
+    detail.innerHTML =
+      '<span class="uc-detail-label">Prompt de arranque — copia y pega en</span>'
+      + '<span class="uc-detail-tool" id="uc-detail-tool"></span>'
+      + '<div class="uc-detail-prompt" id="uc-detail-prompt"></div>'
+      + '<button class="copy-btn" onclick="copyPrompt()">Copiar prompt</button>'
+      + '<div class="uc-detail-footer">'
+      + '<span class="uc-detail-gemini-note">&#10003; Funciona en Gemini</span>'
+      + '<span class="uc-detail-governance">Revisa el output antes de usarlo — y si necesitas subir información sensible, anonímizala primero.</span>'
+      + '</div>';
+    container.appendChild(detail);
+
+    // Pieza 1 — guía de prompting propio (colapsable)
+    container.appendChild(buildPieza1());
+  }
+}
+
+// ── PIEZA 1 — "¿Quieres armar tu propio prompt?" (Investment) ─
+function buildPieza1() {
+  var el = document.createElement('details');
+  el.className = 'prompt-guide';
+  el.innerHTML =
+    '<summary class="prompt-guide-summary">&iquest;Quieres armar tu propio prompt?</summary>'
+    + '<div class="prompt-guide-body">'
+    + '<p>Todo buen prompt tiene al menos tres ingredientes:</p>'
+    + '<ol>'
+    + '<li><strong>Un rol</strong> &mdash; desde qu&eacute; perspectiva quieres que responda AI.<br>'
+    + '<em>Patr&oacute;n: "Eres un [perfil] especializado en [&aacute;rea]."<br>'
+    + 'Ej: "Eres un analista financiero con foco en costos operativos" / "Eres un especialista legal que gestiona contratos con proveedores"</em></li>'
+    + '<li><strong>Contexto</strong> &mdash; qu&eacute; est&aacute;s haciendo, con qu&eacute; informaci&oacute;n cuentas, y qu&eacute; limitaciones hay</li>'
+    + '<li><strong>Un entregable claro</strong> &mdash; qu&eacute; quieres que produzca, en qu&eacute; formato.<br>'
+    + '<em>Ej: "Dame una tabla con X columnas" / "Redacta un email de m&aacute;ximo 5 l&iacute;neas"</em></li>'
+    + '</ol>'
+    + '<p class="prompt-guide-note">Con esos tres elementos ya tienes un prompt funcional. Si quieres ir m&aacute;s lejos, hay otros ingredientes &mdash; pero empieza por aqu&iacute;.</p>'
+    + '</div>';
+  return el;
+}
+
+// ── PIEZA 3 — guía progresiva para Support ────────────────────
+function buildPieza3() {
+  var state = getPieza3State();
+  var topAct = (state === 1) ? getTopNonAIRunDriveActivity() : null;
+
+  var warmupHtml = '';
+  if (state === 1 && topAct) {
+    warmupHtml =
+      '<div class="p3-warmup">'
+      + 'Basándote en <strong>"' + topAct.name + '"</strong> — que declaraste como uno de tus flujos de mayor carga — esa es tu mejor ancla para un primer prompt.<br>'
+      + '<span style="display:block;margin-top:8px;font-size:12px;color:var(--ink-faint);">Esa tarea es tu punto de partida.</span>'
+      + '</div>';
+  } else if (state === 3) {
+    warmupHtml =
+      '<div class="p3-warmup">'
+      + 'Antes de armar un prompt, una pregunta: &iquest;qu&eacute; tarea tienes esta semana que haces casi en modo autom&aacute;tico &mdash; algo repetitivo, que sabes hacer pero que te quita tiempo que podr&iacute;as usar en otra cosa?<br>'
+      + '<span style="display:block;margin-top:8px;font-size:12px;color:var(--ink-faint);">Esa tarea es tu punto de partida.</span>'
+      + '</div>';
+  }
+  // state === 2: all RUN/DRIVE already using AI — no warmup, go direct to ingredients
+
+  var advancedOpen = (state === 2); // avanzado abierto por defecto si ya usa AI en todo
+
+  var block = document.createElement('div');
+  block.className = 'p3-block';
+  block.innerHTML =
+    warmupHtml
+    + '<hr class="p3-divider">'
+    + '<span class="p3-section-title">Un prompt necesita tres cosas</span>'
+    + buildP3Ingredient(1, 'Un rol', 'desde qu&eacute; perspectiva quieres que responda AI',
+        'Patr&oacute;n: "Eres un [perfil] con experiencia en [&aacute;rea]."<br>Ej: "Eres un asistente de Finanzas que conoce el contexto de Krealo" / "Eres un especialista legal que gestiona contratos con proveedores externos"')
+    + buildP3Ingredient(2, 'Contexto', 'qu&eacute; est&aacute;s haciendo y qu&eacute; informaci&oacute;n tienes',
+        'Los datos, el documento, o la situaci&oacute;n concreta que quieres trabajar')
+    + buildP3Ingredient(3, 'Un entregable', 'qu&eacute; quieres que produzca y en qu&eacute; formato',
+        '"Dame una tabla con X columnas" / "Redacta un email de m&aacute;ximo 5 l&iacute;neas"')
+    + '<hr class="p3-divider">'
+    + buildP3Advanced(advancedOpen);
+
+  return block;
+}
+
+function buildP3Ingredient(num, title, desc, ex) {
+  return '<div class="p3-ingredient">'
+    + '<div class="p3-num">' + num + '</div>'
+    + '<div class="p3-ingredient-body">'
+    + '<div class="p3-ingredient-title">' + title + '</div>'
+    + '<div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:4px;">' + desc + '</div>'
+    + '<div class="p3-ingredient-ex">' + ex + '</div>'
+    + '</div></div>';
+}
+
+function buildP3Advanced(open) {
+  var gateText = '&iquest;Ya usas AI con regularidad y quieres ir m&aacute;s lejos?';
+  var contentHtml =
+    buildP3Ingredient(4, 'L&iacute;mites', 'qu&eacute; no debe hacer o asumir AI',
+      '"No inventes datos. Si falta informaci&oacute;n, m&aacute;rcala como pendiente."')
+    + buildP3Ingredient(5, 'Razonamiento', 'c&oacute;mo quieres que llegue al resultado',
+      '"Primero lista los supuestos, luego analiza, luego recomienda."')
+    + '<p class="p3-advanced-note">Agr&eacute;galos cuando notes que el output es correcto pero no del todo &uacute;til &mdash; esa fricci&oacute;n es la se&ntilde;al.</p>';
+
+  if (open) {
+    return '<div class="p3-advanced">'
+      + '<div class="p3-advanced-gate">' + gateText + '</div>'
+      + contentHtml
+      + '</div>';
+  }
+  return '<details class="p3-advanced">'
+    + '<summary class="p3-toggle" style="cursor:pointer;list-style:none;">' + gateText + ' &#43;</summary>'
+    + contentHtml
+    + '</details>';
+}
+
+function selectUC(uc, card) {
+  selectedUC = uc;
+  document.querySelectorAll('.uc-card').forEach(function(c){ c.classList.remove('selected'); });
+  card.classList.add('selected');
+  // Decision #2: "Funciona en Gemini" (estático, ya en HTML)
+  document.getElementById('uc-detail-tool').textContent = '→ Usar en ' + uc.tool;
+  document.getElementById('uc-detail-prompt').textContent = uc.prompt;
+  document.getElementById('uc-detail').classList.add('visible');
+}
+
+function copyPrompt() {
+  var text = document.getElementById('uc-detail-prompt').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.querySelector('.copy-btn');
+    var orig = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(function(){ btn.textContent = orig; }, 2000);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// SUBMIT (Decisions #11, #13, #17, #19, #23)
+// ══════════════════════════════════════════════════════════════
+function submitData() {
+  var btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Registrando…';
+
+  var rows = Object.values(activities).map(function(act) {
+    return {
+      fecha:        new Date().toISOString(),
+      email:        userEmail,
+      area:         area,
+      nivel:        role,
+      tiene_equipo: hasTeam ? 'si' : 'no',
+      version_form: '6.0',
+      workflow:     act.name,
+      grupo:        act.group,
+      peso:         PESO_OPTS.find(function(o){return o.id===act.peso;}) ? PESO_OPTS.find(function(o){return o.id===act.peso;}).label : '',
+      impacto:      getImpactoLabel(act.impacto),
+      stream:       act.stream || '',
+      nota:         act.note || '',
+      capa:         classify(act).toUpperCase(),
+      es_custom:    act.fixed ? 'no' : 'si',
+    };
+  });
+
+  var counts = {run:0,drive:0,grow:0,scale:0};
+  Object.values(activities).forEach(function(act){ counts[classify(act)]++; });
+  var total = Object.values(counts).reduce(function(a,b){return a+b;},0) || 1;
+
+  // Decision #19: reservar campos de adopción como null (schema B3)
+  // Decision #23: agregar fluency_actividades y fluency_nivel
+  var resumen = {
+    pct_run:              Math.round(counts.run/total*100),
+    pct_drive:            Math.round(counts.drive/total*100),
+    pct_grow:             Math.round(counts.grow/total*100),
+    pct_scale:            Math.round(counts.scale/total*100),
+    reflexion:            REFLECTION_OPTS.find(function(o){return o.id===reflectionChoice;}) ? REFLECTION_OPTS.find(function(o){return o.id===reflectionChoice;}).text : 'Sin respuesta',
+    caso_uso:             selectedUC ? selectedUC.wf : 'Sin seleccionar',
+    fluency_actividades:   activitiesWithAI,
+    fluency_nivel:         fluencyLevel || 'sin_uso',
+    run_drive_zero_flag:   window._closeRunDriveZeroFlag || false,
+    casos_identificados:   null,
+    casos_probados:        null,
+    casos_implementados:   null,
+  };
+
+  var payload = {rows: rows, resumen: resumen};
+
+  // Decision #11: SHEET_URLS reducido a 2 entradas
+  var SHEET_URLS = {
+    investment: 'https://script.google.com/a/macros/krealo.pe/s/AKfycbxZrqlOYa8X6Fk5kadIV9rl-iK4ejTDU-K1rPhyWRuH2CSUR3VvlU7attRD5DvwsuHhGg/exec',
+    support:    'https://script.google.com/a/macros/krealo.pe/s/AKfycbxZrqlOYa8X6Fk5kadIV9rl-iK4ejTDU-K1rPhyWRuH2CSUR3VvlU7attRD5DvwsuHhGg/exec',
+  };
+  var sheetUrl = SHEET_URLS[area] || SHEET_URLS.investment;
+
+  if (sheetUrl.indexOf('TU_URL') === 0) {
+    // Modo prueba: Decision #13 — SIN console.log
+    // Decision #17: showCompletionModal() también en el branch de prueba
+    setTimeout(function() {
+      btn.textContent = 'Respuestas registradas ✓';
+      btn.style.background = '#18CF67';
+      showCompletionModal();
+    }, 600);
+    return;
+  }
+
+  // Producción: Decision #17 — showCompletionModal() en el .then()
+  fetch(sheetUrl, {method:'POST', body:JSON.stringify(payload), mode:'no-cors'})
+    .then(function() {
+      btn.textContent = 'Respuestas registradas ✓';
+      btn.style.background = '#18CF67';
+      showCompletionModal();
+    })
+    .catch(function() {
+      btn.textContent = 'Error al registrar — intenta de nuevo';
+      btn.disabled = false;
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOWNLOAD PNG
+// ══════════════════════════════════════════════════════════════
+function downloadPNG() {
+  var zone = document.getElementById('capture-zone');
+  var counts = {run:0,drive:0,grow:0,scale:0};
+  Object.values(activities).forEach(function(act){ counts[classify(act)]++; });
+  var total = Object.values(counts).reduce(function(a,b){return a+b;},0) || 1;
+  var pcts = {};
+  Object.keys(counts).forEach(function(k){ pcts[k]=Math.round(counts[k]/total*100); });
+  var colors = {run:'#D86204',drive:'#18CF67',grow:'#754FD8',scale:'#065C86'};
+  var bgs    = {run:'#FFF9EB',drive:'#EFFEF5',grow:'#F5F4FE',scale:'#E0F3FE'};
+  var pyrHtml = '';
+  ['scale','grow','drive','run'].forEach(function(key) {
+    var m = PYRAMID_META[key];
+    var h = Math.max(60, Math.round(60 + (pcts[key]/100)*140));
+    pyrHtml += '<div style="background:' + bgs[key] + ';border-left:4px solid ' + colors[key] + ';border-radius:8px;padding:14px 20px;margin-bottom:6px;min-height:' + h + 'px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div><div style="font-family:monospace;font-size:10px;text-transform:uppercase;color:' + colors[key] + ';letter-spacing:.1em;font-weight:600;">' + m.label + '</div>'
+      + '<div style="font-size:12px;color:#353B44;margin-top:2px;">' + m.desc + '</div></div>'
+      + '<div style="font-size:36px;font-weight:300;color:' + colors[key] + ';margin-left:16px;">' + pcts[key] + '%</div></div>';
+  });
+  var reflexion = REFLECTION_OPTS.find(function(o){return o.id===reflectionChoice;});
+  var ucText = selectedUC ? selectedUC.wf : '—';
+  zone.innerHTML = '<div style="font-family:\'Figtree\',sans-serif;color:#1A1A1A;">'
+    + '<div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#065C86;margin-bottom:8px;">KREALO · INVENTARIO AI 2026</div>'
+    + '<div style="font-size:11px;color:#586F82;margin-bottom:24px;">' + userEmail + ' · ' + area.toUpperCase() + ' · ' + (role||'') + '</div>'
+    + '<div style="font-size:18px;font-weight:600;margin-bottom:16px;">Mi distribución de tiempo</div>'
+    + pyrHtml
+    + '<div style="margin-top:20px;padding:16px;background:#F4F6F7;border-radius:8px;">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#586F82;margin-bottom:6px;">Si recuperara 5 horas</div>'
+    + '<div style="font-size:13px;color:#353B44;">' + (reflexion ? reflexion.text : '—') + '</div></div>'
+    + '<div style="margin-top:12px;padding:16px;background:#E0F3FE;border-radius:8px;border-left:3px solid #065C86;">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#065C86;margin-bottom:6px;">Caso de uso seleccionado</div>'
+    + '<div style="font-size:13px;font-weight:600;color:#000F12;">' + ucText + '</div></div>'
+    + '</div>';
+  zone.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:40px;z-index:-1;';
+  html2canvas(zone, {scale:2, backgroundColor:'#ffffff', useCORS:true}).then(function(canvas) {
+    zone.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;background:#fff;padding:40px;';
+    var a = document.createElement('a');
+    a.download = 'inventario_ia_krealo_' + area + '_' + (role||'default') + '_' + new Date().toISOString().split('T')[0] + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS: área, validación, modales
+// ══════════════════════════════════════════════════════════════
+// Decision #7: setArea solo acepta investment|support
+// Actualiza también el subtítulo dinámico por área
+var WELCOME_SUBTITLES = {
+  investment: 'La mayoría usa AI para lo que ya domina. Este inventario te muestra dónde usarla para que tu criterio tenga más espacio.',
+  support:    'La mayoría usa AI para lo menor. Este inventario te muestra dónde usarla para lo que importa.',
+};
+
+function setArea(val) {
+  area = val;
+  var labels = {investment:'Investment', support:'Support'};
+  var tag = document.getElementById('welcome-area-tag');
+  if (tag && val) tag.textContent = 'Krealo · Activador AI 2026';
+  // Subtítulo dinámico
+  var sub = document.getElementById('welcome-subtitle');
+  if (sub && val) sub.textContent = WELCOME_SUBTITLES[val] || WELCOME_SUBTITLES.support;
+  var btn = document.getElementById('btn-welcome-next');
+  if (btn) btn.disabled = !val;
+  buildRoleGrid();
+  role = null;
+  hasTeam = null;
+  checkRoleNext();
+}
+
+function showValidationModal(n, allEmpty) {
+  var headline = document.getElementById('val-headline');
+  var body     = document.getElementById('val-body');
+  if (allEmpty) {
+    headline.textContent = 'Todavía no hay flujos evaluados.';
+    body.textContent = 'Saber cuánto tiempo ocupa cada flujo y qué pasaría si desapareciera es lo que hace que tu mapa refleje cómo funciona realmente tu semana. Te toma menos de 2 minutos por flujo.';
+  } else {
+    headline.textContent = n === 1 ? 'Hay 1 flujo sin evaluar.' : 'Hay ' + n + ' flujos sin evaluar.';
+    body.textContent = 'Conocer qué pasaría si esos flujos desaparecieran es lo que permite que tu mapa sea preciso. Te toma menos de un minuto completarlos.';
+  }
+  document.getElementById('validation-overlay').classList.add('visible');
+}
+
+function closeValidation() {
+  document.getElementById('validation-overlay').classList.remove('visible');
+}
+
+function scrollToFirst() {
+  var ids = Object.keys(activities);
+  var first = ids.find(function(id){ return !activities[id].peso || !activities[id].impacto; });
+  if (first) {
+    var el = document.getElementById('row-' + first);
+    if (el) { el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.outline='2px solid var(--accent)'; setTimeout(function(){el.style.outline='';},2000); }
+  }
+}
+
+function showCompletionModal() {
+  var area_labels = {investment:'Investment', support:'Support'};
+  var body = document.getElementById('completion-body');
+  body.textContent = 'Tu inventario de ' + (area_labels[area] || area) + ' está registrado. Puedes revisar tus casos de uso, copiar el prompt que más te resuena, o descargar tu mapa visual.';
+  document.getElementById('completion-overlay').classList.add('visible');
+}
+
+function closeCompletion() {
+  document.getElementById('completion-overlay').classList.remove('visible');
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT — leer URL params y construir grid inicial
+// Decision #7: solo investment|support desde URL
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var p = new URLSearchParams(window.location.search);
+  var a = (p.get('area') || '').toLowerCase();
+  if (['investment','support'].includes(a)) {
+    area = a;
+    var sel = document.getElementById('area-select');
+    if (sel) { sel.value = a; document.getElementById('btn-welcome-next').disabled = false; }
+    var labels = {investment:'Investment', support:'Support'};
+    var tag = document.getElementById('welcome-area-tag');
+    if (tag) tag.textContent = 'Krealo · ' + labels[a] + ' · Activador AI 2026';
+  }
+  buildRoleGrid();
+})();
+</script>
+</body>
+</html>
